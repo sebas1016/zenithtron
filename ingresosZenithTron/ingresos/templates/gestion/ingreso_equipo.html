@@ -1,0 +1,107 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso de equipo</title>
+    <link rel="stylesheet" href="{% static 'gestion/ingreso_style.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}">
+</head>
+<body>
+    <div class="container">
+        <h2 class="titulo-principal"><a href="{%url 'inicio'%}">Ingreso de Equipo al taller </a></h2>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %} 
+
+            <fieldset>
+                <legend>Datos del Cliente</legend>
+                <div class="form-section">{{ cliente_form.as_p }}</div>
+                <datalist id="referencia">
+                    <option value="Instagram"></option>
+                    <option value="Facebook"></option>
+                    <option value="TikTok"></option>
+                    <option value="Google"></option>
+                    <option value="Recomendado"></option>
+                    <option value="YouTube"></option>
+                </datalist>
+            </fieldset>
+
+            <fieldset>
+                <legend>Datos del Equipo</legend>
+                <div class="form-section">{{ equipo_form.as_p }}</div>
+                <datalist id="marcas">
+                    <option value="Bose">
+                    <option value="JBL">
+                    <option value="Marshall">
+                    <option value="Sonos">
+                    <option value="B3">
+                    <option value="Denon">
+                    <option value="Marantz">
+                    <option value="Onkyo">
+                </datalist>
+
+                <!-- Fotos del serial-->
+                <div class="form-section" style="margin-top: 20px;">
+                    <label for="imagenes_serial">
+                        <strong>Fotos del serial (opcional):</strong>
+                        <span style="font-size: 0.9em; color: #666;">para quipos con multipls seriales</span>
+                    </label>
+                    <input type="file" name="imagenes_serial" id="imagenes_serial" multiple accept="image/*">
+                    <small style="color: #7f8c8d; margin-top: 5px; display: block;">
+                        📸 Puedes subir varias fotos si el equipo tiene múltiples números de serie
+                    </small>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Ingreso</legend>
+                <div class="form-section">{{ ingreso_form.as_p }}</div>
+            </fieldset>
+            <fieldset>
+                <legend>Imagenes del equipo</legend>
+                <div class="form-section">
+                    <label for="imagenes">Selecciona una o más imágenes:</label>
+                    <input type="file" name="imagenes" id="imagenes" multiple>
+                </div>
+            </fieldset>
+            <button type="submit">Guardar</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const garantiaCheckbox = document.getElementById('id_es_garantia');
+            const alertaGarantia = document.getElementById('alerta-garantia');
+            const form = document.querySelector('form');
+
+            function toggleAlerta() {
+                if (garantiaCheckbox.checked) {
+                    alertaGarantia.style.display = 'block';
+                    document.getElementById("checkbox-section").classList.add('garantia-activa');
+                } else {
+                    alertaGarantia.style.display = 'none';
+                    document.getElementById("checkbox-section").classList.remove('garantia-activa');
+                }
+            }
+
+            garantiaCheckbox.addEventListener('change', toggleAlerta);
+            toggleAlerta();
+
+            form.addEventListener('submit', function (e) {
+                const confirmMsg = garantiaCheckbox.checked
+                    ? "¿Estás seguro de continuar? Está marcado como garantía."
+                    : "¿Estás seguro de continuar?";
+                if (!confirm(confirmMsg)) {
+                    e.preventDefault();
+                }
+            });
+        });
+        document.querySelector("form").addEventListener("submit", function() {
+            const btn = document.querySelector("button[type='submit']");
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+        });
+    </script>
+</body>
+</html>

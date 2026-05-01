@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - Ingresos ZenithTron</title>
+    <link rel="stylesheet" href="{% static 'gestion/style.css' %}">
+    <meta name="description" content="Sistema de gestión de ingresos de equipos para taller ZenithTron">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}"> 
+</head>
+<body>
+    <div class="container"> 
+        <header>
+            <h1><img src="{% static 'images/system.png' %}" width="70"> Sistema de Gestión de Ingresos</h1>
+            <div class="user-info">
+                <span class="welcome-message">
+                    Bienvenido/a
+                  
+            </div>
+        </header>
+
+        <main>
+            <p class="description">
+                Este sistema permite gestionar los equipos ingresados al taller ZenithTron de manera eficiente y organizada.
+            </p>
+
+            <nav class="main-menu">
+                <h2>Menú Principal</h2>
+                <div class="menu-grid">
+                    <a href="{% url 'ingreso_equipo' %}" class="menu-item ingreso">
+                        <span class="icon"><img src="{% static 'images/add.png' %}" width="100"></span>
+                        <span class="title">Ingresar Equipo</span>
+                        <span class="description">Registrar nuevo equipo en el sistema</span>
+                    </a>
+
+                    <!--<aclass="menu-item buscar">
+                        <span class="icon">🔍</span>
+                        <span class="title">Buscar Equipo</span>
+                        <span class="description">Buscar equipos por diferentes criterios</span>
+                    </a>-->
+
+                    <a href="{% url 'listar_ingresos' %}" class="menu-item listar">
+                        <span class="icon"><img src="{% static 'images/list.png' %}" width="100"></span>
+                        <span class="title">Listar Ingresos</span>
+                        <span class="description">Ver todos los equipos registrados</span>
+                    </a>
+
+                    <a class="menu-item dashboard" href="{% url 'dashboard' %}">
+                        <span class="icon"> <img src="{% static 'images/dashboard.png' %}" width="100"> </span>
+                        <span class="title">Dashboard</span>
+                        <span class="description">Ver estadisticas</span>
+                    </a>
+                </div>
+            </nav>
+        </main>
+
+        <footer>
+            <p>&copy; {% now "Y" %} Taller ZenithTron - Sistema de Gestión de Ingresos</p>
+        </footer>
+    </div>
+
+    <script>
+        // Añadir efectos de hover y confirmación para logout
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutBtn = document.querySelector('.logout-btn');
+            
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    if (!confirm('¿Estás seguro que deseas cerrar sesión?')) {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            // Añadir animación suave a los elementos del menú
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach((item, index) => {
+                item.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>

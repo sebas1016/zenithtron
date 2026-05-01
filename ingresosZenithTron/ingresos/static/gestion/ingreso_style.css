@@ -1,0 +1,500 @@
+/* Estilos específicos para ingreso_equipo.html */
+
+/* Estilos base heredados del archivo principal */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background: linear-gradient(135deg, #0f0bf1 0%, #171718 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+/* Título principal */
+.titulo-principal {
+            color: white;
+            background-color: #24374b;
+            font-size: 2.2em;
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(52, 73, 94, 0.3);
+        }
+        .titulo-principal a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .titulo-principal a:visited {
+            color: white; /* evita el color violeta del enlace visitado */
+        }
+
+        .titulo-principal a:hover {
+            color: #f1c40f; /* o el color que quieras al pasar el mouse */
+            text-decoration: underline; /* opcional */
+        }
+
+        .titulo-principal a:active {
+            color: white; /* mantiene blanco al hacer clic */
+        }
+
+.container h2::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: #e74c3c;
+    border-radius: 2px;
+}
+
+/* Formulario */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Fieldsets */
+fieldset {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 25px;
+    background: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+fieldset:hover {
+    border-color: #3498db;
+    box-shadow: 0 8px 25px rgba(52, 152, 219, 0.1);
+}
+
+fieldset legend {
+    font-weight: 600;
+    font-size: 1.3em;
+    color: #2c3e50;
+    padding: 0 15px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #3498db;
+    position: relative;
+    top: -8px;
+}
+
+/* Secciones del formulario */
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Estilos para los párrafos del formulario generados por Django */
+.form-section p {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.form-section p label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+/* Campos de entrada */
+.form-section input[type="text"],
+.form-section input[type="email"],
+.form-section input[type="tel"],
+.form-section input[type="date"],
+.form-section input[type="number"],
+.form-section input[type="file"],
+.form-section textarea,
+.form-section select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.form-section input[type="text"]:focus,
+.form-section input[type="email"]:focus,
+.form-section input[type="tel"]:focus,
+.form-section input[type="date"]:focus,
+.form-section input[type="number"]:focus,
+.form-section input[type="file"]:focus,
+.form-section textarea:focus,
+.form-section select:focus {
+    outline: none;
+    border-color: #3498db;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Textarea específico */
+.form-section textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+/* Checkboxes */
+.form-section input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+    transform: scale(1.2);
+    accent-color: #3498db;
+}
+
+/* Sección de checkbox con ID específico */
+#checkbox-section {
+    padding: 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+#checkbox-section.garantia-activa {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    border-color: #c0392b;
+    color: white;
+}
+
+#checkbox-section.garantia-activa label {
+    color: white;
+    font-weight: 700;
+}
+
+/* Alerta de garantía */
+#alerta-garantia {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    animation: pulseAlert 2s infinite;
+}
+
+@keyframes pulseAlert {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* Botón de envío */
+button[type="submit"] {
+    background: linear-gradient(135deg, #2766ee 0%, #2422a7 100%);
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.2em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    align-self: center;
+    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+}
+
+button[type="submit"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+    background: linear-gradient(135deg, #2766ee 0%, #2422a7 100%);
+}
+
+button[type="submit"]:active {
+    transform: translateY(-1px);
+}
+
+/* Estilos para campos de archivo */
+.form-section input[type="file"] {
+    padding: 10px;
+    background: white;
+    border-style: dashed;
+    border-width: 2px;
+    border-color: #3498db;
+    cursor: pointer;
+}
+
+.form-section input[type="file"]:hover {
+    border-color: #2980b9;
+    background: #f8f9fa;
+}
+
+/* Estilos para mensajes de error (si los hay) */
+.errorlist {
+    list-style: none;
+    color: #e74c3c;
+    background: #fdf2f2;
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 4px solid #e74c3c;
+    margin-top: 5px;
+}
+
+.errorlist li {
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        margin: 10px;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    
+    .container h2 {
+        font-size: 1.8em;
+    }
+    
+    fieldset {
+        padding: 20px;
+    }
+    
+    fieldset legend {
+        font-size: 1.1em;
+    }
+    
+    .form-section input[type="text"],
+    .form-section input[type="email"],
+    .form-section input[type="tel"],
+    .form-section input[type="date"],
+    .form-section input[type="number"],
+    .form-section input[type="file"],
+    .form-section textarea,
+    .form-section select {
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+    
+    button[type="submit"] {
+        padding: 12px 30px;
+        font-size: 1.1em;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        margin: 5px;
+        padding: 15px;
+    }
+    
+    .container h2 {
+        font-size: 1.6em;
+    }
+    
+    fieldset {
+        padding: 15px;
+    }
+    
+    fieldset legend {
+        font-size: 1em;
+        padding: 0 10px;
+    }
+    
+    button[type="submit"] {
+        padding: 10px 25px;
+        font-size: 1em;
+    }
+}
+
+/* Animaciones de entrada */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+fieldset {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+fieldset:nth-child(1) { animation-delay: 0.1s; }
+fieldset:nth-child(2) { animation-delay: 0.2s; }
+fieldset:nth-child(3) { animation-delay: 0.3s; }
+fieldset:nth-child(4) { animation-delay: 0.4s; }
+
+/* Mejoras para la accesibilidad */
+.form-section input:invalid {
+    border-color: #e74c3c;
+}
+
+.form-section input:valid {
+    border-color: #27ae60;
+}
+
+/* Estilos para el estado de carga */
+.loading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.loading button[type="submit"] {
+    background: #95a5a6;
+    cursor: not-allowed;
+}
+
+.loading button[type="submit"]:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Estilos específicos para el input de imágenes del serial */
+.form-section input[type="file"]#imagenes_serial {
+    border-color: #9b59b6;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e8e4f3 100%);
+}
+
+.form-section input[type="file"]#imagenes_serial:hover {
+    border-color: #8e44ad;
+    background: #f0ecf7;
+}
+
+.form-section small {
+    font-size: 0.85em;
+    line-height: 1.4;
+}
+.btn-secondary {
+  background: transparent;
+  color: #6b6b65;
+  border: 1px solid #c8c7c0;
+  padding: 12px 24px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-secondary:hover { border-color: #0f0f0f; color: #0f0f0f; }
+
+.btn-delete-item {
+    background-color: #ffe5e5;
+    color: #d93025;
+    border: 1px solid #f5c2c2;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover */
+.btn-delete-item:hover {
+    background-color: #fddede;
+    color: #b3261e;
+    border-color: #e0a1a1;
+}
+
+/* Click (feedback) */
+.btn-delete-item:active {
+    transform: scale(0.95);
+}
+
+input[type="checkbox"][name$="DELETE"] {
+    display: none;
+}
+.titulo {
+    color: white;
+    background-color: #34495e;
+    font-size: 2.2em;
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 0px;
+    border-radius: 0px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(52, 73, 94, 0.3);
+}
+.titulo a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.titulo a:visited {
+    color: white; /* evita el color violeta del enlace visitado */
+}
+
+.titulo a:hover {
+    color: #f1c40f; /* o el color que quieras al pasar el mouse */
+    text-decoration: underline; /* opcional */
+}
+
+.titulo a:active {
+    color: white; /* mantiene blanco al hacer clic */
+}
+.detalle-header {
+    background: #34495e;
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+} 
+
+.detalle-header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgb(52, 73, 94, 0.3);
+}
+
+.detalle-header p {
+    font-size: 1.1em;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.detalle-header .datos-header {
+    display: flex;        /* organiza los spans en fila */
+    gap: 20px;            /* espacio entre cada span */
+}
+
+.detalle-header .datos-header span {
+    font-size: 16px;      /* tamaño del texto */
+    flex: 1;              /* cada span ocupa el mismo espacio */
+    min-width: 150px;     /* ancho mínimo */
+}
+

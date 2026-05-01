@@ -1,0 +1,737 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cuenta de Cobro #{{ cuenta.numero }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ─── Variables ─────────────────────────────────────────── */
+    :root {
+      --ink:      #1a1a1a;
+      --ink-2:    #555;
+      --ink-3:    #999;
+      --rule:     #e0e0e0;
+      --accent:   #c8451a;
+      --accent-l: #fdf1ed;
+      --surface:  #f7f6f3;
+      --white:    #ffffff;
+      --panel-w:  360px;
+      --doc-w:    720px;
+      --radius:   6px;
+      --shadow:   0 4px 24px rgba(0,0,0,.10);
+    }
+
+    /* ─── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--surface);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ─── Top bar ────────────────────────────────────────────── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 52px;
+      background: var(--white);
+      border-bottom: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-back {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500; color: var(--ink-2);
+      text-decoration: none;
+      padding: 6px 10px; border-radius: var(--radius);
+      transition: background .15s, color .15s;
+    }
+    .topbar-back:hover { background: var(--surface); color: var(--ink); }
+    .topbar-back svg { width: 14px; height: 14px; }
+    .topbar-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; color: var(--ink-3);
+      letter-spacing: .03em;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; transition: all .15s;
+    }
+    .btn svg { width: 14px; height: 14px; }
+    .btn-ghost {
+      background: transparent; color: var(--ink-2);
+      border: 1px solid var(--rule);
+    }
+    .btn-ghost:hover { background: var(--surface); color: var(--ink); }
+    .btn-primary {
+      background: var(--accent); color: var(--white);
+    }
+    .btn-primary:hover { background: #b03a15; }
+
+    /* ─── Layout ─────────────────────────────────────────────── */
+    .workspace {
+      display: flex;
+      padding-top: 52px;
+      min-height: 100vh;
+    }
+
+    /* ─── Panel lateral ──────────────────────────────────────── */
+    .panel {
+      width: var(--panel-w);
+      flex-shrink: 0;
+      background: var(--white);
+      border-right: 1px solid var(--rule);
+      overflow-y: auto;
+      position: fixed;
+      top: 52px; left: 0; bottom: 0;
+      display: flex; flex-direction: column;
+    }
+    .panel-section {
+      padding: 20px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .panel-section:last-child { border-bottom: none; flex: 1; }
+    .panel-label {
+      font-size: 10px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--ink-3);
+      margin-bottom: 14px;
+    }
+
+    .field { margin-bottom: 12px; }
+    .field label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--ink-2); margin-bottom: 4px;
+    }
+    .field input, .field textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; color: var(--ink);
+      background: var(--surface);
+      outline: none;
+      transition: border-color .15s, background .15s;
+      resize: none;
+    }
+    .field input:focus, .field textarea:focus {
+      border-color: var(--accent); background: var(--white);
+    }
+
+    /* Items del panel */
+    .items-panel { display: flex; flex-direction: column; gap: 10px; }
+    .item-panel-row {
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 10px;
+      position: relative;
+    }
+    .item-panel-row .remove-item {
+      position: absolute; top: 8px; right: 8px;
+      width: 18px; height: 18px;
+      background: none; border: none; cursor: pointer;
+      color: var(--ink-3); font-size: 16px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      transition: background .15s, color .15s;
+    }
+    .item-panel-row .remove-item:hover { background: #ffe5e0; color: var(--accent); }
+    .item-panel-row .field { margin-bottom: 8px; }
+    .item-panel-row .field:last-child { margin-bottom: 0; }
+    .item-row-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .btn-add-item {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      width: 100%; padding: 9px;
+      border: 1.5px dashed var(--rule);
+      border-radius: var(--radius);
+      background: none; cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500;
+      color: var(--ink-3);
+      transition: border-color .15s, color .15s, background .15s;
+      margin-top: 10px;
+    }
+    .btn-add-item:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-l); }
+
+    .panel-notes { padding: 20px; border-top: 1px solid var(--rule); }
+
+    /* ─── Área de preview ────────────────────────────────────── */
+    .preview-area {
+      margin-left: var(--panel-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 24px 60px;
+    }
+
+    /* ─── Documento ──────────────────────────────────────────── */
+    .doc {
+      width: 100%;
+      max-width: var(--doc-w);
+      background: var(--white);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+      overflow: hidden;
+      animation: fadeUp .35s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cabecera del documento */
+    .doc-header {
+      padding: 36px 44px 28px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 2px solid var(--ink);
+    }
+    .doc-brand { display: flex; flex-direction: column; gap: 4px; }
+    
+    .doc-brand-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px; color: var(--ink);
+      line-height: 1;
+    }
+    .doc-brand-sub {
+      font-size: 11px; color: var(--ink-3);
+      letter-spacing: .04em;
+    }
+    .doc-meta { text-align: right; }
+    .doc-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px; color: var(--accent);
+      line-height: 1; margin-bottom: 6px;
+    }
+    .doc-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--ink-3);
+    }
+    .doc-date {
+      font-size: 12px; color: var(--ink-2);
+      margin-top: 4px;
+    }
+
+    /* Info cliente / empresa */
+    .doc-parties {
+      display: grid; grid-template-columns: 1fr 1fr;
+      padding: 24px 44px;
+      gap: 24px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .party-label {
+      font-size: 10px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--ink-3);
+      margin-bottom: 6px;
+    }
+    .party-name {
+      font-size: 15px; font-weight: 600; color: var(--ink);
+      margin-bottom: 2px;
+    }
+    .party-detail { font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+
+    /* Equipo info */
+    .doc-device {
+      padding: 16px 44px;
+      border-bottom: 1px solid var(--rule);
+      display: flex; gap: 24px; flex-wrap: wrap;
+    }
+    .device-chip {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--ink-2);
+    }
+    .device-chip strong { color: var(--ink); }
+
+    /* Tabla de items */
+    .doc-items { padding: 24px 44px; }
+    .items-table { width: 100%; border-collapse: collapse; }
+    .items-table thead tr {
+      border-bottom: 1.5px solid var(--ink);
+    }
+    .items-table th {
+      font-size: 10px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--ink-3);
+      padding: 0 0 10px;
+      text-align: left;
+    }
+    .items-table th.right, .items-table td.right { text-align: right; }
+    .items-table th.center, .items-table td.center { text-align: center; }
+    .items-table tbody tr {
+      border-bottom: 1px solid var(--rule);
+    }
+    .items-table tbody tr:last-child { border-bottom: none; }
+    .items-table td {
+      padding: 12px 0;
+      font-size: 13px; color: var(--ink);
+      vertical-align: top;
+    }
+    .items-table td.desc { color: var(--ink); }
+    .items-table td.qty {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--ink-2);
+    }
+    .items-table td.price, .items-table td.subtotal {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+    .items-table td.subtotal { font-weight: 600; }
+    .empty-row td {
+      color: var(--ink-3) !important;
+      font-style: italic;
+      font-size: 13px;
+    }
+
+    /* Totales */
+    .doc-totals {
+      padding: 0 44px 36px;
+      display: flex; justify-content: flex-end;
+    }
+    .totals-box { min-width: 240px; }
+    .totals-row {
+      display: flex; justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 13px; color: var(--ink-2);
+      border-bottom: 1px solid var(--rule);
+    }
+    .totals-row:last-child { border-bottom: none; }
+    .totals-row.total-final {
+      margin-top: 4px;
+      font-size: 16px; font-weight: 700; color: var(--ink);
+      border-top: 2px solid var(--ink);
+      padding-top: 10px;
+    }
+    .totals-row span:last-child {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+    .totals-row.total-final span:last-child { font-size: 16px; }
+    .totals-label { font-size: 13px; }
+
+    /* Notas */
+    .doc-notes {
+      margin: 0 44px 36px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 12px; color: var(--ink-2);
+      line-height: 1.6;
+    }
+    .doc-notes-label {
+      font-size: 10px; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--ink-3);
+      margin-bottom: 4px;
+    }
+
+    /* Footer */
+    .doc-footer {
+      padding: 16px 44px;
+      background: var(--ink);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .doc-footer-brand {
+      font-family: 'DM Serif Display', serif;
+      font-size: 13px; color: rgba(255,255,255,.5);
+    }
+    .doc-footer-contact {
+      font-size: 11px; color: rgba(255,255,255,.4);
+      text-align: right;
+    }
+
+    /* ─── Print ──────────────────────────────────────────────── */
+    @media print {
+      body { background: white; }
+      .topbar, .panel { display: none !important; }
+      .preview-area {
+        margin-left: 0 !important;
+        padding: 0 !important;
+      }
+      .doc {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        max-width: 100% !important;
+        animation: none !important;
+      }
+      @page { margin: 0; size: A4; }
+    }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .workspace { flex-direction: column; }
+      .panel {
+        position: static; width: 100%;
+        border-right: none; border-bottom: 1px solid var(--rule);
+      }
+      .preview-area { margin-left: 0; }
+    }
+    .logo-header { 
+        position: absolute;
+        top: 10px;
+        left: 270px;
+        width: 70px;
+        height: 70px;
+        background: url("{% static 'images/logo.ico' %}") no-repeat center center;
+        background-size: contain;
+        z-index: 1000;
+    }
+   
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ TOP BAR ══════════════ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <a href="{% url 'detalle_ingreso' ingreso.id %}" class="topbar-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Ingreso #{{ ingreso.numero_ingreso }}
+    </a>
+    <span class="topbar-title">/ Cuenta de Cobro #{{ cuenta.numero }}</span>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost" onclick="window.print()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir
+    </button>
+  </div>
+</header>
+
+<!-- ══════════════ WORKSPACE ══════════════ -->
+<div class="workspace">
+
+  <!-- ── Panel de edición ── -->
+  <aside class="panel">
+
+    <!-- Datos del cliente -->
+    <div class="panel-section">
+      <div class="panel-label">Cliente</div>
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" id="f-nombre" value="{{ cuenta.nombre }}" placeholder="Nombre del cliente">
+      </div>
+      <div class="field">
+        <label>Teléfono</label>
+        <input type="text" id="f-telefono" value="{{ cuenta.telefono|default:'' }}" placeholder="Teléfono">
+      </div>
+      <div class="field">
+        <label>Dirección</label>
+        <input type="text" id="f-direccion" value="{{ cuenta.direccion|default:'' }}" placeholder="Dirección (opcional)">
+      </div>
+    </div>
+
+    <!-- Fecha -->
+    <div class="panel-section">
+      <div class="panel-label">Documento</div>
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="f-fecha" value="{{ cuenta.fecha|date:'Y-m-d' }}">
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div class="panel-section">
+      <div class="panel-label">Items / Servicios</div>
+      <div class="items-panel" id="items-panel">
+        {% for item in cuenta.items.all %}
+        <div class="item-panel-row" data-index="{{ forloop.counter0 }}">
+          <button class="remove-item" type="button" title="Eliminar">×</button>
+          <div class="field">
+            <label>Descripción</label>
+            <input type="text" class="item-desc" value="{{ item.descripcion }}" placeholder="Descripción del servicio">
+          </div>
+          <div class="item-row-2col">
+            <div class="field">
+              <label>Cantidad</label>
+              <input type="number" class="item-qty" value="{{ item.cantidad }}" min="1" placeholder="1">
+            </div>
+            <div class="field">
+              <label>Precio unit.</label>
+              <input type="number" class="item-price" value="{{ item.precio_unitario }}" min="0" step="0.01" placeholder="0.00">
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <button class="btn-add-item" id="add-item-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Agregar ítem
+      </button>
+    </div>
+
+    <!-- Notas -->
+    <div class="panel-section">
+      <div class="panel-label">Notas (opcional)</div>
+      <div class="field">
+        <textarea id="f-notas" rows="3" placeholder="Garantía, condiciones de pago, observaciones...">{{ cuenta.notas|default:'' }}</textarea>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Preview del documento ── -->
+  <main class="preview-area">
+    <div class="doc" id="doc-preview">
+
+      <!-- Cabecera -->
+      <div class="doc-header">
+        <div class="doc-brand">
+            
+            <div class="doc-brand-name">Electrónicas Zenithtron</div>
+            <div class="doc-brand-sub">Servicio Técnico Especializado</div>
+            
+        </div>
+        <div class="doc-meta">
+          <div class="doc-title">Cuenta de Cobro</div>
+          <div class="doc-num">Nº {{ cuenta.numero }}</div>
+          <div class="doc-date" id="preview-fecha"></div>
+        </div>
+      </div>
+
+      <!-- Partes -->
+      <div class="doc-parties">
+        <div>
+          <div class="party-label">Cobrado a</div>
+          <div class="party-name" id="preview-nombre">{{ cuenta.nombre }}</div>
+          <div class="party-detail" id="preview-telefono">{{ cuenta.telefono|default:'' }}</div>
+          <div class="party-detail" id="preview-direccion">{{ cuenta.direccion|default:'' }}</div>
+        </div>
+        <div>
+          <div class="party-label">Prestado por</div>
+          <div class="party-name">Electrónicas Zenithtron</div>
+          <div class="party-detail">NIT: 43497794</div>
+          <div class="party-detail">Tel: 305 2600028</div>
+        </div>
+      </div>
+
+      <!-- Equipo asociado -->
+      <div class="doc-device">
+        <div class="device-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          <span>Equipo: <strong>{{ ingreso.equipo.tipo }} {{ ingreso.equipo.marca }} {{ ingreso.equipo.modelo }}</strong></span>
+        </div>
+        {% if ingreso.equipo.serial %}
+        <div class="device-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Serial: <strong>{{ ingreso.equipo.serial }}</strong></span>
+        </div>
+        {% endif %}
+        <div class="device-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>Ingreso: <strong>#{{ ingreso.numero_ingreso }}</strong></span>
+        </div>
+      </div>
+
+      <!-- Tabla de items -->
+      <div class="doc-items">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th style="width:50%">Descripción</th>
+              <th class="center" style="width:12%">Cant.</th>
+              <th class="right" style="width:19%">Precio unit.</th>
+              <th class="right" style="width:19%">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="preview-items">
+            <!-- generado por JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totales -->
+      <div class="doc-totals">
+        <div class="totals-box">
+          <div class="totals-row">
+            <span class="totals-label">Subtotal</span>
+            <span id="preview-subtotal">$0</span>
+          </div>
+          <div class="totals-row total-final">
+            <span class="totals-label">Total</span>
+            <span id="preview-total">$0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div class="doc-notes" id="preview-notes-block" style="display:none">
+        <div class="doc-notes-label">Notas</div>
+        <div id="preview-notas"></div>
+      </div>
+
+      <!-- Footer -->
+      <div class="doc-footer">
+        <div class="doc-footer-brand">Electrónicas Zenithtron</div>
+        <div class="doc-footer-contact">
+          Medellín, Colombia<br>
+          electronicaszenithtron@gmail.com
+        </div>
+      </div>
+
+    </div><!-- .doc -->
+  </main>
+</div><!-- .workspace -->
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   Estado de items — inicializado desde Django
+══════════════════════════════════════════════════════════════ */
+let items = [
+  {% for item in cuenta.items.all %}
+  {
+    desc: "{{ item.descripcion|escapejs }}",
+    qty: {{ item.cantidad }},
+    price: {{ item.precio_unitario }}
+  }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+];
+
+/* ══════════════════════════════════════════════════════════════
+   Formato de moneda (COP sin decimales)
+══════════════════════════════════════════════════════════════ */
+const fmt = (v) => '$' + Number(v).toLocaleString('es-CO', {maximumFractionDigits: 0});
+
+/* ══════════════════════════════════════════════════════════════
+   Render del preview
+══════════════════════════════════════════════════════════════ */
+function renderPreview() {
+  // Campos de texto
+  document.getElementById('preview-nombre').textContent    = document.getElementById('f-nombre').value    || '—';
+  document.getElementById('preview-telefono').textContent  = document.getElementById('f-telefono').value  || '';
+  document.getElementById('preview-direccion').textContent = document.getElementById('f-direccion').value || '';
+
+  // Fecha
+  const fechaVal = document.getElementById('f-fecha').value;
+  if (fechaVal) {
+    const d = new Date(fechaVal + 'T00:00:00');
+    document.getElementById('preview-fecha').textContent = d.toLocaleDateString('es-CO', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    });
+  }
+
+  // Notas
+  const notas = document.getElementById('f-notas').value.trim();
+  const notesBlock = document.getElementById('preview-notes-block');
+  if (notas) {
+    document.getElementById('preview-notas').textContent = notas;
+    notesBlock.style.display = 'block';
+  } else {
+    notesBlock.style.display = 'none';
+  }
+
+  // Items
+  const tbody = document.getElementById('preview-items');
+  tbody.innerHTML = '';
+  if (items.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Sin ítems agregados</td></tr>';
+  } else {
+    items.forEach(item => {
+      const sub = (item.qty || 0) * (item.price || 0);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="desc">${item.desc || '<em style="color:#aaa">Sin descripción</em>'}</td>
+        <td class="qty center">${item.qty || 1}</td>
+        <td class="price right">${fmt(item.price || 0)}</td>
+        <td class="subtotal right">${fmt(sub)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Totales
+  const subtotal = items.reduce((a, i) => a + (i.qty||0)*(i.price||0), 0);
+  document.getElementById('preview-subtotal').textContent = fmt(subtotal);
+  document.getElementById('preview-total').textContent    = fmt(subtotal);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Render del panel de items
+══════════════════════════════════════════════════════════════ */
+function renderPanel() {
+  const panel = document.getElementById('items-panel');
+  panel.innerHTML = '';
+  items.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'item-panel-row';
+    div.dataset.index = i;
+    div.innerHTML = `
+      <button class="remove-item" type="button" title="Eliminar">×</button>
+      <div class="field">
+        <label>Descripción</label>
+        <input type="text" class="item-desc" value="${item.desc}" placeholder="Descripción del servicio">
+      </div>
+      <div class="item-row-2col">
+        <div class="field">
+          <label>Cantidad</label>
+          <input type="number" class="item-qty" value="${item.qty}" min="1" placeholder="1">
+        </div>
+        <div class="field">
+          <label>Precio unit.</label>
+          <input type="number" class="item-price" value="${item.price}" min="0" step="100" placeholder="0">
+        </div>
+      </div>
+    `;
+    panel.appendChild(div);
+  });
+  bindItemEvents();
+  renderPreview();
+}
+
+function bindItemEvents() {
+  document.querySelectorAll('.item-desc').forEach((el, i) => {
+    el.addEventListener('input', () => { items[i].desc = el.value; renderPreview(); });
+  });
+  document.querySelectorAll('.item-qty').forEach((el, i) => {
+    el.addEventListener('input', () => { items[i].qty = parseFloat(el.value)||1; renderPreview(); });
+  });
+  document.querySelectorAll('.item-price').forEach((el, i) => {
+    el.addEventListener('input', () => { items[i].price = parseFloat(el.value)||0; renderPreview(); });
+  });
+  document.querySelectorAll('.remove-item').forEach((btn, i) => {
+    btn.addEventListener('click', () => { items.splice(i, 1); renderPanel(); });
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Agregar ítem
+══════════════════════════════════════════════════════════════ */
+document.getElementById('add-item-btn').addEventListener('click', () => {
+  items.push({ desc: '', qty: 1, price: 0 });
+  renderPanel();
+  // Scroll y foco en el nuevo campo
+  setTimeout(() => {
+    const rows = document.querySelectorAll('.item-panel-row');
+    const last = rows[rows.length - 1];
+    if (last) {
+      last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      last.querySelector('.item-desc')?.focus();
+    }
+  }, 50);
+});
+
+/* ══════════════════════════════════════════════════════════════
+   Campos de texto simples
+══════════════════════════════════════════════════════════════ */
+['f-nombre','f-telefono','f-direccion','f-fecha','f-notas'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', renderPreview);
+  document.getElementById(id)?.addEventListener('change', renderPreview);
+});
+
+/* ══════════════════════════════════════════════════════════════
+   Init
+══════════════════════════════════════════════════════════════ */
+renderPanel();
+renderPreview();
+</script>
+</body>
+</html>

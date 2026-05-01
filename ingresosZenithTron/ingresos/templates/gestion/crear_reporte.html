@@ -1,0 +1,56 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Reporte Tenico</title>
+    
+    <link rel="stylesheet" href="{% static 'gestion/style.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}">
+</head>
+<body>
+    <div class="reporte-form-page">
+        <div class="reporte-form-card">
+            <div class="reporte-form-header">
+                <span class="reporte-form-tag">Nuevo reporte técnico</span>
+                <h1>Cotización</h1>
+                <div class="reporte-equipo-info">
+                    <span><strong>Ingreso:</strong> {{ ingreso.numero_ingreso }}</span>
+                    <span><strong>Cliente:</strong> {{ ingreso.equipo.cliente.nombre }}</span>
+                    <span><strong>Equipo:</strong> {{ ingreso.equipo.marca }} {{ ingreso.equipo.modelo }}</span>
+                </div>
+            </div>
+
+            <form method="post" class="reporte-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form.descripcion_trabajo.id_for_label }}">
+                        {{ form.descripcion_trabajo.label }}
+                    </label>
+                    {{ form.descripcion_trabajo }}
+                    {% if form.descripcion_trabajo.errors %}
+                        <span class="form-error">{{ form.descripcion_trabajo.errors.as_text }}</span>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.valor.id_for_label }}">
+                    {{ form.valor.label }}
+                    </label>
+                    <div class="input-prefix-wrap">
+                        <span class="input-prefix">$</span>
+                        {{ form.valor }}
+                    </div>
+                    {% if form.valor.errors %}
+                        <span clSass="form-error">{{ form.valor.errors.as_text }}</span>
+                    {% endif %}
+                </div>
+                <div class="form-actions">
+                    <a href="javascript:history.back()" class="btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn-primary">Generar Reporte</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

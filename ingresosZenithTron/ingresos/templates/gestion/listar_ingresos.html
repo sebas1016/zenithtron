@@ -1,0 +1,428 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title class="title">Gestión de Ingresos - ZenithTron</title>
+    <link rel="stylesheet" href="{% static 'gestion/style.css' %}?v=2">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}">
+    <style>
+        <!--
+            /* Estilos para la paginación dentro de la tabla */
+.pagination-api {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-nav {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 5px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-nav:hover {
+    background-color: #e2e6ea;
+    border-color: #adb5bd;
+}
+
+.pagination-api span {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 600;
+}
+
+            
+            
+        
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* para scroll suave en iOS */
+    width: 100%;
+}
+
+#ingresosTable {
+    width: 100%;
+    min-width: 100px; /* Ajusta segÃºn cuÃ¡ntas columnas tenga tu tabla */
+    
+    border-collapse: collapse;
+}
+
+#ingresosTable th,
+#ingresosTable td {
+    padding: 12px 10px;
+    text-align: left;
+    white-space: nowrap; /* evita que el texto se rompa en varias lÃ­neas */
+}
+
+/* Opcional: Estilo visual de la barra de scroll */
+.table-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+    </style>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}">
+</head>
+<body>
+    <div class="container">
+        <h2 class="titulo-principal"><a href="{%url 'inicio'%}">Gestión de Ingresos - Taller Electrónico</a></h2>
+        
+        <!-- Filtros -->
+        <div class="filtros">
+            <input type="text" id="busqueda" placeholder="Buscar por nombre, celular, modelo o número...">
+            <label for="estadoFiltro">Filtrar por estado:</label>
+            <select id="estadoFiltro">
+                <option value="">--Todos--</option>
+                <option value="pendiente">Pendiente por revisión</option>
+                <option value="reparacion">En reparación</option>
+                <option value="revisado">Revisado</option>
+                <option value="autorizado">Autorizado</option>
+                <option value="reparado">Reparado</option>
+                <option value="entregado">Entregado</option>
+                <option value="devolucion">Devolución</option>
+                <option value="garantia">Garantía</option>
+                
+            </select>
+
+            <label for="alertaFiltro">Alertas:</label>
+            <select id="alertaFiltro">
+                <option value="">Todos</option>
+                <option value="green">Reciente</option>
+                <option value="con-alerta">Advertencia</option>
+                <option value="critico">Crítico</option>
+            </select>
+        </div>
+
+        <div class="table-container">
+            <table id="ingresosTable">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Cliente</th>
+                        <th>Equipo</th>
+                        <th>¿Garantí­a?</th>
+                        <th>Ver</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-ingresos">
+                        {% include 'gestion/fragmento_tabla_ingresos.html' %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+ 
+    <!-- Modal de Ediciónn -->
+  <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Editar Ingreso</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+               <!-- Información del Cliente y Equipo -->
+                <div class="info-section">
+                    <h3>Información del Ingreso</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Número de Ingreso</strong>
+                            <span id="info-numero">012501</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Fecha de Ingreso</strong>
+                            <span id="info-fecha">15/01/2024 - 10:30 AM</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Recibido por</strong>
+                            <span id="info-recibido">Juan Morales</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>Información del Cliente</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Nombre</strong>
+                            <span id="info-cliente">Juan PÃ©rez</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Celular</strong>
+                            <span id="info-celular">3001234567</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Barrio</strong>
+                            <span id="info-barrio">Centro</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Referencia</strong>
+                            <span id="info-referencia">Facebook</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>Información del Equipo</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Marca</strong>
+                            <span id="info-marca">HP</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Modelo</strong>
+                            <span id="info-modelo">Pavilion</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Serial</strong>
+                            <span id="info-serial">ABC123</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Descripción</strong>
+                            <span id="info-descripcion-equipo">Laptop personal de uso diario</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulario de Edición -->
+                <form id="editForm">
+                    <div class="form-group">
+                        <label for="descripcion_dano">Descripción del Daño/Problema *</label>
+                        <textarea id="descripcion_dano" name="descripcion_dano" placeholder="Describe detalladamente el problema reportado por el cliente..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="estado_ingreso">Estado del Ingreso *</label>
+                            <select id="estado_ingreso" name="estado">
+                                <option value="pendiente">Pendiente por revisión</option>
+                                <option value="reparacion">En reparación</option>
+                                <option value="revisado">Revisado</option>
+                                <option value="reparado">Reparado</option>
+                                <option value="autorizado">Autorizado</option>
+                                <option value="entregado">Entregado</option>
+                                <option value="devolucion">Devolución</option>
+                                <option value="garantia">Garantí­a</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="paga_revision" name="paga_revision">
+                                <label for="paga_revision">¿Pagá revisión?</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="es_garantia" name="es_garantia">
+                        <label for="es_garantia">¿Es garantí­a?</label>
+                    </div>
+                </form>
+
+                <!-- Historial -->
+                <div class="historial-section">
+                    <h3>Historial del Equipo</h3>
+                    <div id="historial-container">
+                        <div class="historial-item">
+                            <div class="historial-header">
+                                <span class="historial-fecha">15/01/2024 - 10:30 AM</span>
+                                <span class="historial-usuario">Juan Morales</span>
+                            </div>
+                            <div class="historial-descripcion">Ingreso inicial - Pendiente por revisiÃ³n</div>
+                            <div class="historial-descripcion">Equipo no enciende, posible problema con fuente</div>
+                        </div>
+                        <div class="historial-item">
+                            <div class="historial-header">
+                                <span class="historial-fecha">16/01/2024 - 14:20 PM</span>
+                                <span class="historial-usuario">MarÃ­a SÃ¡nchez</span>
+                            </div>
+                            <div class="historial-descripcion">RevisiÃ³n tÃ©cnica completada</div>
+                            <div class="historial-descripcion">Problema confirmado: Fuente de alimentaciÃ³n defectuosa</div>
+                            <div class="historial-costo">Costo estimado: $80.000</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="archivarIngreso()">Archivar</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="saveChanges()">Guardar Cambios</button>
+                
+                <a id="btnDescargarPDF" class="btn btn-download" href="#" target="_blank">Descargar PDF</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ── Referencias al DOM ──────────────────────────────────────────
+    const inputBusqueda = document.getElementById('busqueda');
+    const selectEstado  = document.getElementById('estadoFiltro');
+    const selectAlerta  = document.getElementById('alertaFiltro');
+    const tablaBody     = document.getElementById('tabla-ingresos');
+
+    // ── Paginación ──────────────────────────────────────────────────
+    function buscarIngresos(page = 1) {
+        const query  = inputBusqueda.value;
+        const estado = selectEstado.value;
+        const alerta = selectAlerta.value;
+
+        fetch(`/api/buscar-ingresos/?query=${encodeURIComponent(query)}&estado=${estado}&alerta=${alerta}&page=${page}`)
+            .then(r => r.json())
+            .then(data => { tablaBody.innerHTML = data.html; })
+            .catch(err => console.error('Error al buscar:', err));
+    }
+
+    // Vuelve a página 1 al cambiar filtros
+    inputBusqueda.addEventListener('input',  () => buscarIngresos(1));
+    selectEstado.addEventListener('change',  () => buscarIngresos(1));
+    selectAlerta.addEventListener('change',  () => buscarIngresos(1));
+
+    // ── Modal ───────────────────────────────────────────────────────
+    let currentIngresoId = null;
+
+    function formatearFecha(fechaString) {
+        const fecha = new Date(fechaString);
+        return fecha.toLocaleDateString('es-CO') + ' - ' + fecha.toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'});
+    }
+
+    function formatearMoneda(valor) {
+        if (!valor) return '';
+        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
+    }
+
+    function openModal(ingresoId) {
+        currentIngresoId = ingresoId;
+
+        fetch(`/api/ingresos/${ingresoId}/`)
+            .then(r => { if (!r.ok) throw new Error('Error al obtener datos'); return r.json(); })
+            .then(ingreso => {
+                document.getElementById('info-numero').textContent   = ingreso.numero_ingreso;
+                document.getElementById('info-fecha').textContent    = formatearFecha(ingreso.fecha_ingreso);
+                document.getElementById('info-recibido').textContent = ingreso.recibido_por;
+
+                document.getElementById('info-cliente').textContent         = ingreso.cliente.nombre;
+                document.getElementById('info-celular').textContent         = ingreso.cliente.celular;
+                document.getElementById('info-barrio').textContent          = ingreso.cliente.barrio;
+                document.getElementById('info-referencia').textContent      = ingreso.cliente.referencia;
+
+                document.getElementById('info-marca').textContent            = ingreso.equipo.marca;
+                document.getElementById('info-modelo').textContent           = ingreso.equipo.modelo;
+                document.getElementById('info-serial').textContent           = ingreso.equipo.serial || 'Sin serial';
+                document.getElementById('info-descripcion-equipo').textContent = ingreso.equipo.descripcion_general;
+
+                document.getElementById('descripcion_dano').value   = ingreso.descripcion_dano;
+                document.getElementById('estado_ingreso').value     = ingreso.estado;
+                document.getElementById('paga_revision').checked    = ingreso.paga_revision;
+                document.getElementById('es_garantia').checked      = ingreso.es_garantia;
+                document.getElementById('btnDescargarPDF').href     = `/ingresos/${ingresoId}/pdf/`;
+
+                const historialContainer = document.getElementById('historial-container');
+                historialContainer.innerHTML = '';
+                ingreso.historial.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'historial-item';
+                    div.innerHTML = `
+                        <div class="historial-header">
+                            <span class="historial-fecha">${formatearFecha(item.fecha)}</span>
+                            <span class="historial-usuario">${item.realizado_por}</span>
+                        </div>
+                        <div class="historial-descripcion">${item.descripcion}</div>
+                        ${item.costo ? `<div class="historial-costo">Costo: ${formatearMoneda(item.costo)}</div>` : ''}
+                    `;
+                    historialContainer.appendChild(div);
+                });
+
+                document.getElementById('editModal').classList.add('show');
+            })
+            .catch(err => { console.error(err); alert('No se pudo cargar el ingreso.'); });
+    }
+    function archivarIngreso() {
+        if (!confirm('¿Archivar este ingreso? No aparecerá en la lista principal, pero podrás consultarlo después.')) return;
+
+        fetch(`/api/ingresos/${currentIngresoId}/archivar/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(r => r.json())
+        .then(() => {
+            // Quitar la fila de la tabla
+            document.querySelector(`tr[data-id="${currentIngresoId}"]`)?.remove();
+            closeModal();
+        });
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').classList.remove('show');
+        currentIngresoId = null;
+    }
+
+    function saveChanges() {
+        if (!currentIngresoId) return;
+
+        fetch(`/api/ingresos/${currentIngresoId}/actualizar/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({
+                descripcion_dano: document.getElementById('descripcion_dano').value,
+                estado:           document.getElementById('estado_ingreso').value,
+                paga_revision:    document.getElementById('paga_revision').checked,
+                es_garantia:      document.getElementById('es_garantia').checked,
+            })
+        })
+        .then(r => { if (!r.ok) throw new Error('Error al guardar'); return r.json(); })
+        .then(() => {
+            const estado = document.getElementById('estado_ingreso').value;
+            const es_garantia = document.getElementById('es_garantia').checked;
+            const row = document.querySelector(`tr[data-id="${currentIngresoId}"]`);
+            if (row) {
+                row.querySelector('.status').className = `status ${estado}`;
+                row.querySelector('.status').textContent = getStatusText(estado);
+                row.cells[5].innerHTML = es_garantia ? '<span class="garantia-badge">GARANTÍA</span>' : '';
+            }
+            alert('Cambios guardados exitosamente');
+            closeModal();
+        })
+        .catch(err => { console.error(err); alert('Ocurrió un error al guardar los cambios'); });
+    }
+
+    function getCookie(name) {
+        for (let cookie of document.cookie.split(';')) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) return decodeURIComponent(cookie.slice(name.length + 1));
+        }
+        return null;
+    }
+
+    function getStatusText(estado) {
+        return { pendiente: 'Pendiente', reparacion: 'En Reparación', revisado: 'Revisado',
+                 reparado: 'Reparado', entregado: 'Entregado', devolucion: 'Devolución',
+                 garantia: 'Garantía', archivado: 'Archivado' }[estado] || estado;
+    }
+
+    // Cerrar modal con clic fuera o ESC
+    window.addEventListener('click', e => { if (e.target === document.getElementById('editModal')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    // Click en filas de la tabla (también funciona después de reemplazar el innerHTML)
+    tablaBody.addEventListener('click', e => {
+        const fila = e.target.closest('tr[data-id]');
+        if (fila && !e.target.closest('a')) openModal(fila.getAttribute('data-id'));
+    });
+</script>
+
+</body>
+</html>

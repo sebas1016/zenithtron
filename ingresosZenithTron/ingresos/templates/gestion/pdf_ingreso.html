@@ -1,0 +1,281 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Ingreso {{ ingreso.numero_ingreso }}</title>
+    <style>
+    body {
+        font-family: "Arial", sans-serif;
+        margin: 0;
+        padding: 0px;
+        color: #333;
+        position: relative;
+    }
+
+    /* Marca de agua con CSS puro */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 41%;
+        left: 50%;
+        width: 400px;
+        height: 400px;
+        background: url("{% static 'images/logo.jpg' %}") no-repeat center center;
+        background-size: contain;
+        transform: translate(-50%, -50%);
+        opacity: 0.2;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    /* Logo en esquina superior izquierda */
+    .logo-header { 
+        position: absolute;
+        top: 10px;
+        left: 20px;
+        width: 90px;
+        height: 90px;
+        background: url("{% static 'images/logo.jpg' %}") no-repeat center center;
+        background-size: contain;
+        z-index: 1000;
+    }
+
+    /* Qr en esquina superior derecha */
+    .qr-header { 
+        width: 90px;
+        height: 90px;
+        background: url("{% static 'images/qrcode.png' %}") no-repeat center center;
+        background-size: contain;
+    }
+    .qr-container {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        text-align: center;
+    }
+    .Zlink {
+        
+        font-size: 9px;
+        color: #555;
+    }
+    
+    header {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+        padding-top: 90px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    h1 {
+        font-size: 24px;
+        text-transform: uppercase;
+        border-bottom: 2px solid #555;
+        padding-bottom: 5px;
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Secciones con títulos destacados */
+    .seccion {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        page-break-inside: avoid;
+    }
+
+    .seccion h2 {
+        font-size: 18px;
+        color: #2c3e50;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 10px;
+        
+    }
+
+    /* Información en formato línea por línea */
+    .info-item {
+        margin: 8px 0;
+        padding-left: 15px;
+        line-height: 1.6;
+    }
+
+    .info-item strong {
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    .info-item span {
+        color: #555;
+    }
+
+    footer {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 11px;
+        color: #888;
+        page-break-inside: avoid;
+    }
+
+    .galeria-imagenes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: flex-start;
+        align-items: flex-start;
+        margin-top: 15px;
+    }
+
+    .miniatura {
+        flex: 0 0 auto;
+        text-align: center;
+    }
+
+    .miniatura img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        display: block;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .miniatura p {
+        font-size: 10px;
+        margin-top: 4px;
+        color: #666;
+    }
+
+    .aviso-importante {
+        margin-top: 2rem;
+        padding: 15px;
+        background-color: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 5px;
+        text-align: center;
+        display: inline-block;
+        
+    }
+
+    .aviso-importante strong {
+        color: #d63031;
+        font-size: 13px;
+        display: block;
+    }
+
+
+    .marca-agua-texto {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 48px;
+        color: #f5f5f5;
+        z-index: -1;
+        pointer-events: none;
+        font-weight: bold;
+        opacity: 0.03;
+        white-space: nowrap;
+    }
+
+    .header-info {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .header-info p {
+        margin: 5px 0;
+        font-size: 14px;
+    }
+
+    .numero-ingreso {
+        color: #e74c3c;
+        font-weight: bold;
+        font-size: 16px;
+    }
+    
+</style>
+</head>
+<body>
+    <div class="marca-agua-texto"></div>
+
+    <header>
+        <div class="logo-header"></div>
+        <div class="qr-container">
+            <a href="https://electronicaszenithtron.com/" class="Zlink">
+                <div class="qr-header"></div>
+            </a>
+        </div>
+
+        <h1>Informe de Ingreso</h1>
+        <div class="header-info">
+            <p>
+                <strong>Número de Ingreso:</strong>
+                <span class="numero-ingreso">#{{ ingreso.numero_ingreso }}</span>
+                <strong>| Fecha de Ingreso:</strong> {{ ingreso.fecha_ingreso|date:"d/m/Y H:i" }}
+            </p>
+            <p><strong>Recibido por:</strong> {{ ingreso.recibido_por }}</p>
+        </div>
+    </header>
+
+    <div class="seccion">
+        <h2>Información del Cliente</h2>
+        <p><strong>Nombre:</strong> {{ cliente.nombre }}</p>
+        <p><strong>Celular:</strong> {{ cliente.celular }}</p>
+        <p><strong>Referencia:</strong> {{ cliente.referencia }}</p>
+    </div>
+
+    <div class="seccion">
+        <h2>Información del Equipo</h2>
+        <p><strong>Marca:</strong> {{ equipo.marca }}</p>
+        <p><strong>Modelo:</strong> {{ equipo.modelo }}</p>
+        <p><strong>Serial:</strong> {{ equipo.serial|default:"Sin serial" }}</p>
+        <p><strong>Descripción General:</strong> {{ equipo.descripcion_general|default:"N/A" }}</p>
+        <p><strong>Descripción del daño:</strong> {{ ingreso.descripcion_dano }}</p>
+    </div>
+
+    {% if imagenes_serial %}
+    <div class="seccion">
+        <h2>Imágenes del Serial</h2>
+        <div class="galeria-imagenes">
+            {% for img in imagenes_serial %}
+            <div class="miniatura">
+                <img src="{{ img.ruta }}" alt="Serial del equipo">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if imagenes %}
+    <div class="seccion">
+        <h2>Imágenes de Ingreso</h2>
+        <div class="galeria-imagenes">
+            {% for img in imagenes %}
+            <div class="miniatura">
+                <img src="{{ img.ruta }}" alt="Imagen de ingreso">
+                {% if img.descripcion %}
+                <p class="descripcion-imagen">{{ img.descripcion }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="aviso-importante">
+        <p><strong>⚠️ IMPORTANTE:</strong> Información de diagnóstico en 1 a 5 días hábiles.</p>
+        <p>
+            Los términos y condiciones del servicio los puedes encontrar en
+            <a href="https://www.electronicaszenithtron.com">www.electronicaszenithtron.com</a>
+            o escaneando el código QR en la parte superior derecha.
+        </p>
+    </div>
+
+    <footer>
+        <p>&copy; Generado automáticamente por el sistema de gestión del taller.</p>
+        <p>Fecha de generación: {% now "d/m/Y H:i" %}</p>
+    </footer>
+</body>

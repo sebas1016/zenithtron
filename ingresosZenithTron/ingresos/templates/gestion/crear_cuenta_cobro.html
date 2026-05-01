@@ -1,0 +1,111 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar cuenta de cobro</title>
+    <link rel="stylesheet" href="{% static 'gestion/ingreso_style.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}">
+</head>
+<body>
+    <div class="container">
+        
+        <div class="cuenta-form-card">
+            <div class="detalle-header">
+                
+                    <h1 class="titulo"><a href="{%url 'inicio'%}">Crear cuenta de cobro </a></h1>
+                    <p class="datos-header"><hr>
+                        
+                        <span><strong>Ingreso:</strong> {{ ingreso.numero_ingreso }}</span>
+                        <span><strong>Cliente:</strong> {{ ingreso.equipo.cliente.nombre }}</span>
+                        <span><strong>Equipo:</strong> {{ ingreso.equipo.marca }} {{ ingreso.equipo.modelo }}</span>
+                    </p>
+                
+            </div>
+            <div class="reporte-equipo-info">
+                
+            <form method="post" class="cuenta-form">
+                {% csrf_token %}
+                <fieldset>
+                    <legend>Datos Cliente</legend>
+                    <div class="form-section">
+                        {{ form.as_p}}
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>Concepto</legend>
+                    {{ formset.management_form }}  {# OBLIGATORIO, sin esto el POST falla #}
+        
+                    <div id="items-container">
+                        {% for item_form in formset %}
+                        <div class="item-row">
+                            {{ item_form.id }}  {# campo hidden necesario para edición #}
+                            
+                            <div class="form-section">
+                                
+                                {{ item_form.as_p }}
+                            </div>
+                            
+                            {% if item_form.can_delete %}
+                                <label>{{ item_form.DELETE }} Eliminar</label>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+                <button type="button" id="agregar-item" class="btn-secondary">+ Agregar ítem</button>
+
+                <div class="form-actions">
+                    <a href="javascript:history.back()" class="btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn-primary">Generar Reporte</button>
+                </div>
+            </form>
+            {# Fila vacía para clonar con JS #}
+            <div id="empty-form" style="display:none">
+                <div class="item-row">
+                    {{ formset.empty_form.id }}
+                    <div class="form-section">
+                       
+                        {{ formset.empty_form.as_p }}
+                    </div>
+                    
+                    {# Ocultar el checkbox #}
+                    <div style="display:none">{{ item_form.DELETE }}</div>
+                    <br>
+                    {# Botón visible #}
+                    <button type="button" class="btn-delete-item" 
+                            data-target="{{ item_form.DELETE.id_for_label }}">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    document.getElementById('agregar-item').addEventListener('click', function() {
+        const container = document.getElementById('items-container');
+        const totalForms = document.getElementById('id_detalle_items-TOTAL_FORMS'); // ajusta el prefijo
+        const index = parseInt(totalForms.value);
+        
+        const emptyForm = document.getElementById('empty-form').innerHTML;
+        const newForm = emptyForm.replace(/__prefix__/g, index);
+        
+        container.insertAdjacentHTML('beforeend', newForm);
+        totalForms.value = index + 1;
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-delete-item')) {
+            const row = e.target.closest('.item-row');
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+            row.style.display = 'none';
+        }
+    }); 
+</script>
+</html>

@@ -1,0 +1,269 @@
+{%load static%}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle Ingreso {{ ingreso.numero_ingreso }}</title>
+    <link rel="stylesheet" href="{% static 'gestion/style.css'%}">
+    <link rel="stylesheet" href="{% static 'gestion/detalle_ingreso_style.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}">
+</head>
+<body> 
+    <div class="container">
+        <!-- Header -->
+        <div class="detalle-header">
+            <h1 class="titulo"><a href="{%url 'inicio'%}">Ingreso #{{ ingreso.numero_ingreso }}</a></h1>
+            <p>Detalle completo del ingreso</p>
+            
+        </div>
+        
+        <!-- Botón Volver -->
+        <a href="{% url 'listar_ingresos' %}" class="btn-volver">← Volver al listado</a>
+        <!--<a href="{% url 'crear_reporte_tecnico' ingreso.id %}" class="btn-reporte">Generar Reporte Técnico</a>
+        <a href="{% url 'crear_cuenta_cobro' ingreso.id %}" class="btn-reporte">Generar Cuenta de corbo</a> Future-->
+        <!-- Información del Ingreso -->
+        <div class="info-section">
+            <h3><img src="{% static 'images/information.png' %}" width="40"> Información del Ingreso</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Fecha de Ingreso</strong>
+                    <span>{{ ingreso.fecha_ingreso|date:"d/m/Y" }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Estado</strong>
+                    <span class="status-badge {{ ingreso.estado }}">{{ ingreso.get_estado_display }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Recibido por</strong>
+                    <span>{{ ingreso.recibido_por.username}}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Paga revisión</strong>
+                    <span>{{ ingreso.paga_revision|yesno:"Sí,No" }}</span>
+                </div>
+            </div>
+            <div class="info-item" style="margin-top: 20px;">
+                <strong>Descripción del daño</strong>
+                <span>{{ ingreso.descripcion_dano }}</span>
+            </div>
+        </div>
+
+        <!-- Información del Cliente -->
+        <div class="info-section">
+            <h3><img src="{% static 'images/people.png' %}" width="40"> Información del Cliente</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Nombre</strong>
+                    <span>{{ cliente.nombre }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Celular</strong>
+                    <span>{{ cliente.celular }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Barrio</strong>
+                    <span>{{ cliente.barrio }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Referencia</strong>
+                    <span>{{ cliente.referencia }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Equipo -->
+        <div class="info-section">
+            <h3><img src="{% static 'images/server.png' %}" width="40"> Información del Equipo</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Marca</strong>
+                    <span>{{ equipo.marca }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Modelo</strong>
+                    <span>{{ equipo.modelo }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Serial</strong>
+                    <span>{{ equipo.serial }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Imágenes del Serial -->
+        {% if imagenes_serial %}
+        <div class="info-section serial-section">
+            <h3><img src="{% static 'images/bar-code.png' %}" width="40"> Imágenes del Serial</h3>
+            <p style="color: #7f8c8d; font-size: 0.95em; margin-bottom: 15px;">
+                Fotos del serial
+            </p>
+            <div class="galeria galeria-serial">
+                {% for img in imagenes_serial %}
+                <div class="galeria-item serial-item">
+                    <img src="{{ img.imagen.url }}" alt="Serial del equipo" onclick="openImageModal(this)">
+                    <div class="serial-info">
+                        <small>📅 {{ img.fecha_subida|date:"d/m/Y"}}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        
+        
+        <!-- Imágenes del Ingreso -->
+        {% if imagenes %}
+        <div class="info-section">
+            <h3><img src="{% static 'images/image.png' %}" width="40"> Imágenes del Ingreso</h3>
+            <div class="galeria">
+                {% for img in imagenes %}
+                <div class="galeria-item">
+                    <img src="{{ img.imagen.url }}" alt="Imagen del ingreso" onclick="openImageModal(this)">
+                    {% if img.descripcion %}
+                    <p>{{ img.descripcion }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="section-divider"></div>
+        
+        <!-- Historial -->
+        <div class="historial-section">
+            <h3><img src="{% static 'images/file.png' %}" width="50">Historial del Ingreso</h3>
+            
+            {% if historial %}
+            <div style="margin-bottom: 30px;">
+                {% for h in historial %}
+                <div class="historial-item">
+                    <div class="historial-header">
+                        <div class="historial-fecha">{{ h.fecha|date:"d/m/Y" }}</div>
+                        <div class="historial-usuario">Realizado por: {{ h.realizado_por }}</div>
+                    </div>
+                    
+                    <div class="status-badge {{ h.estado }}">{{ h.get_estado_display }}</div>
+                    
+                    <div class="historial-descripcion">{{ h.descripcion }}</div>
+                    
+                    {% if h.costo %}
+                    <div class="historial-costo">Costo: ${{ h.costo }}</div>
+                    {% endif %}
+                    
+                    {% if h.imagenes.all %}
+                    <div class="galeria" style="margin-top: 15px;">
+                        {% for img in h.imagenes.all %}
+                        <div class="galeria-item">
+                            <img src="{{ img.imagen.url }}" alt="Imagen historial" onclick="openImageModal(this)">
+                            {% if img.descripcion %}
+                            <p>{{ img.descripcion }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-historial">
+                <p>No hay historial registrado aún</p>
+            </div>
+            {% endif %}
+            
+            <!-- Formulario para agregar historial -->
+            <div class="form-section">
+                <h3><img src="{% static 'images/add.png' %}" width="35"> Agregar Entrada al Historial</h3>
+                <button class="toggle-btn" onclick="toggleFormularioHistorial()">
+                    + Agregar nueva entrada
+                </button>
+                
+                <div id="formulario-historial" class="formulario-historial" style="display: none;">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            {{ form.as_p }}
+                        </div>
+                        <div class="form-group">
+                            <label for="imagen">Agregar imágenes del proceso:</label>
+                            <input type="file" name="imagen" multiple accept="image/*">
+                        </div>
+                        <button type="submit" class="btn-submit">Agregar Entrada</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para imágenes -->
+    <div id="imageModal" class="image-modal">
+        <span class="image-modal-close" onclick="closeImageModal()">&times;</span>
+        <img class="image-modal-content" id="modalImage">
+    </div>
+    
+    <script>
+        function toggleFormularioHistorial() {
+            const formDiv = document.getElementById('formulario-historial');
+            const btn = document.querySelector('.toggle-btn');
+            
+            if (formDiv.style.display === 'none' || formDiv.style.display === '') {
+                formDiv.style.display = 'block';
+                btn.textContent = '- Cancelar';
+                formDiv.style.animation = 'fadeIn 0.3s ease-out';
+            } else {
+                formDiv.style.display = 'none';
+                btn.textContent = '+ Agregar nueva entrada';
+            }
+        }
+        
+        // Función para abrir imagen en modal
+        function openImageModal(img) {
+            event.stopPropagation();
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'block';
+            modalImg.src = img.src;
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Función para cerrar modal
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Cerrar modal al hacer clic en el fondo negro
+        document.getElementById('imageModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeImageModal();
+            }
+        });
+        
+        // Cerrar modal con tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeImageModal();
+            }
+        });
+        
+        // Animación de entrada para las secciones
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.info-section, .historial-section');
+            sections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    section.style.transition = 'all 0.6s ease';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,476 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Taller</title>
+    <link rel="stylesheet" href="{% static 'gestion/ingreso_style.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0bf1 0%, #171718 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
+        }
+
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            padding: 15px;
+            margin: 15px 0;
+            background: #fadbd8;
+            border: 2px solid #e74c3c;
+            border-radius: 10px;
+            display: none;
+            font-weight: 500;
+        }
+
+        /* Estilos para los KPIs */
+        .kpi-card {
+            transition: all 0.3s ease;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .kpi-card:nth-child(1) { animation-delay: 0.1s; }
+        .kpi-card:nth-child(2) { animation-delay: 0.2s; }
+        .kpi-card:nth-child(3) { animation-delay: 0.3s; }
+        .kpi-card:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilos para la sección de filtros */
+        .filtros {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            border: 2px solid #e0e0e0;
+            position: relative;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .filtros h5 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filtros h5::before {
+            content: '🔍';
+            font-size: 1.5em;
+        }
+
+        .filtros label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: block;
+            font-size: 0.9em;
+        }
+
+        .filtros .form-control,
+        .filtros .form-select {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .filtros .form-control:focus,
+        .filtros .form-select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .filtros .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filtros .btn-primary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+        }
+
+        .filtros .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4);
+        }
+
+        .filtros .btn-secondary {
+            background: #95a5a6;
+            color: white;
+            box-shadow: 0 4px 6px rgba(149, 165, 166, 0.3);
+        }
+
+        .filtros .btn-secondary:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(149, 165, 166, 0.4);
+        }
+
+        /* Indicador de filtro activo */
+        .filter-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #3498db;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .filter-badge.active {
+            display: inline-block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Estilos para las tarjetas de gráficos */
+        .card {
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h5 {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .filtros {
+                padding: 20px;
+            }
+
+            .filtros h5 {
+                font-size: 1.1em;
+            }
+
+            .filter-badge {
+                position: static;
+                display: block;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="titulo-principal"><a href="{%url 'inicio'%}"> Dashboard </a></h2>
+
+        <!-- Filtros -->
+        <div class="filtros">
+            <span class="filter-badge" id="filterBadge">✓ Filtros activos</span>
+            <h5>Filtros de Búsqueda</h5>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="fecha_inicio">Fecha inicio</label>
+                    <input type="date" id="fecha_inicio" class="form-control">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label for="fecha_fin">Fecha fin</label>
+                    <input type="date" id="fecha_fin" class="form-control">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label for="estado">Estado</label>
+                    <select id="estado" class="form-select">
+                        <option value="">Todos los estados</option>   
+                        <option value="pendiente">Pendiente por revisión</option>
+                        <option value="reparacion">En reparación</option>
+                        <option value="revisado">Revisado</option>
+                        <option value="autorizado">Autorizado</option>
+                        <option value="reparado">Reparado</option>
+                        <option value="entregado">Entregado</option>
+                        <option value="devolucion">Devolución</option>
+                        <option value="garantia">Garantía</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-3 d-flex align-items-end gap-2">
+                    <button class="btn btn-primary flex-fill" id="btnFiltrar">
+                        Filtrar
+                    </button>
+                    <button class="btn btn-secondary flex-fill" id="btnLimpiar">
+                        Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- KPIs -->
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card text-bg-primary text-center p-3 kpi-card">
+                    <h4 id="kpi-total">{{ total_ingresos }}</h4>
+                    <p class="mb-0">Ingresos Totales</p>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card text-bg-warning text-center p-3 kpi-card">
+                    <h4 id="kpi-activos">{{ activos }}</h4>
+                    <p class="mb-0">Activos</p>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card text-bg-success text-center p-3 kpi-card">
+                    <h4 id="kpi-entregados">{{ entregados }}</h4>
+                    <p class="mb-0">Entregados</p>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card text-bg-danger text-center p-3 kpi-card">
+                    <h4 id="kpi-garantias">{{ garantias }}</h4>
+                    <p class="mb-0">Garantías</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row mt-4">
+            <div class="col-md-6 mb-4">
+                <div class="card p-3">
+                    <h5 class="text-center mb-3">Estado de Equipos</h5>
+                    <canvas id="graficoEstados"></canvas>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card p-3">
+                    <h5 class="text-center mb-3">Ingresos por Mes</h5>
+                    <canvas id="graficoMeses"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Configuración inicial de gráficos
+        const estadosLabels = {{ estados_data|safe }}.map(item => item.estado);
+        const estadosValues = {{ estados_data|safe }}.map(item => item.total);
+
+        const graficoEstados = new Chart(document.getElementById('graficoEstados'), {
+            type: 'doughnut',
+            data: {
+                labels: estadosLabels,
+                datasets: [{
+                    data: estadosValues,
+                    backgroundColor: [
+                        '#dc3545', // rojo
+                        '#ffc107', // amarillo
+                        '#198754', // verde
+                        '#0d6efd', // azul
+                        '#6f42c1'  // morado
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        const mesesData = {{ ingresos_mes|safe }};
+        const mesesLabels = mesesData.map(item => item.mes);
+        const mesesValues = mesesData.map(item => item.total);
+
+        const graficoMeses = new Chart(document.getElementById('graficoMeses'), {
+            type: 'bar',
+            data: {
+                labels: mesesLabels,
+                datasets: [{
+                    label: 'Ingresos',
+                    data: mesesValues,
+                    backgroundColor: '#0d6efd',
+                    borderColor: '#0a58ca',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // Función para actualizar dashboard
+        function actualizarDashboard() {
+            const inicio = document.getElementById('fecha_inicio').value;
+            const fin = document.getElementById('fecha_fin').value;
+            const estado = document.getElementById('estado').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const container = document.querySelector('.container');
+            const filterBadge = document.getElementById('filterBadge');
+
+            // Validación básica
+            if (inicio && fin && inicio > fin) {
+                errorDiv.textContent = 'La fecha de inicio no puede ser mayor que la fecha fin';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // Mostrar badge si hay filtros activos
+            if (inicio || fin || estado) {
+                filterBadge.classList.add('active');
+            } else {
+                filterBadge.classList.remove('active');
+            }
+
+            errorDiv.style.display = 'none';
+            container.classList.add('loading');
+
+            // Construir URL con parámetros
+            const params = new URLSearchParams();
+            if (inicio) params.append('inicio', inicio);
+            if (fin) params.append('fin', fin);
+            if (estado) params.append('estado', estado);
+
+            fetch(`/estadisticas-api/?${params.toString()}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al obtener datos');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Actualizar todos los KPIs
+                    document.getElementById('kpi-total').textContent = data.total_ingresos;
+                    document.getElementById('kpi-activos').textContent = data.activos;
+                    document.getElementById('kpi-entregados').textContent = data.entregados;
+                    document.getElementById('kpi-garantias').textContent = data.garantias;
+
+                    // Actualizar gráfico de estados
+                    graficoEstados.data.labels = data.estados.map(e => e.estado);
+                    graficoEstados.data.datasets[0].data = data.estados.map(e => e.total);
+                    graficoEstados.update();
+
+                    // Actualizar gráfico de meses
+                    graficoMeses.data.labels = data.ingresos_mes.map(e => e.mes);
+                    graficoMeses.data.datasets[0].data = data.ingresos_mes.map(e => e.total);
+                    graficoMeses.update();
+                })
+                .catch(error => {
+                    errorDiv.textContent = 'Error al cargar los datos: ' + error.message;
+                    errorDiv.style.display = 'block';
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    container.classList.remove('loading');
+                });
+        }
+
+        // Event listeners
+        document.getElementById('btnFiltrar').addEventListener('click', actualizarDashboard);
+        
+        document.getElementById('btnLimpiar').addEventListener('click', function() {
+            document.getElementById('fecha_inicio').value = '';
+            document.getElementById('fecha_fin').value = '';
+            document.getElementById('estado').value = '';
+            document.getElementById('filterBadge').classList.remove('active');
+            actualizarDashboard();
+        });
+
+        // Filtrar al presionar Enter en los inputs
+        document.querySelectorAll('#fecha_inicio, #fecha_fin').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    actualizarDashboard();
+                }
+            });
+        });
+
+        // Filtrar automáticamente al cambiar el estado
+        document.getElementById('estado').addEventListener('change', actualizarDashboard);
+    </script>
+</body>
+</html>

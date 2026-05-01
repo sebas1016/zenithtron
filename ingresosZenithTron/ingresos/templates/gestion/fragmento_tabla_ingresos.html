@@ -1,0 +1,45 @@
+{% for ingreso in ingresos %}
+<tr data-id="{{ ingreso.id }}" class="ingreso-row {% if ingreso.requiere_alerta %}alerta-{{ ingreso.nivel_alerta }}{% endif %}" onclick="openModal({{ ingreso.id }})">
+    <td>
+        <div class="numero-container">
+            {{ ingreso.numero_ingreso }}
+            {% if ingreso.requiere_alerta %}
+                <span class="alerta-badge {{ ingreso.nivel_alerta }}" 
+                      title="{{ ingreso.obtener_mensaje_alerta }} (solo días hábiles)">
+                    <span class="dias-badge">{{ ingreso.dias_en_taller }}d</span>
+                </span>
+            {% endif %}
+        </div>
+    </td>
+    <td>{{ ingreso.fecha_ingreso|date:"d/m/y"}}</td>
+    <td><span class="status {{ingreso.estado}}">{{ ingreso.get_estado_display }}</span></td>
+    <td>{{ ingreso.equipo.cliente.nombre }}</td>
+    <td>{{ ingreso.equipo.marca }} {{ ingreso.equipo.modelo }}</td>
+    <td class="text-center">
+        {% if ingreso.es_garantia %}
+            <span class="garantia-badge">GARANTÍA</span>
+        {% endif %}
+    </td>
+    <td><a href="{% url 'detalle_ingreso' numero_ingreso=ingreso.numero_ingreso %}" onclick="event.stopPropagation()">Ver</a></td>
+</tr>
+{% empty %}
+<tr><td colspan="7">No se encontraron resultados</td></tr>
+{% endfor %}
+
+{% if ingresos.paginator.num_pages > 1 %}
+<tr>
+    <td colspan="7" style="text-align: center; padding: 20px;">
+        <div class="pagination-api">
+            {% if ingresos.has_previous %}
+                <button type="button" class="btn-nav" onclick="buscarIngresos({{ ingresos.previous_page_number }})">Anterior</button>
+            {% endif %}
+            
+            <span>Página {{ ingresos.number }} de {{ ingresos.paginator.num_pages }}</span>
+            
+            {% if ingresos.has_next %}
+                <button type="button" class="btn-nav" onclick="buscarIngresos({{ ingresos.next_page_number }})">Siguiente</button>
+            {% endif %}
+        </div>
+    </td> 
+</tr>
+{% endif %}

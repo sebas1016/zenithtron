@@ -1,0 +1,305 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}">
+    <title>Ingreso Exitoso</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sistema de Gestión de Taller</h1>
+            <div class="subtitle">Operación Completada</div>
+        </header>
+
+        <div class="success-container">
+            <div class="success-card">
+                <div class="success-icon">
+                    <div class="checkmark">✅</div>
+                </div>
+                
+                <h1 class="success-title">
+                    Ingreso #{{ ingreso.numero_ingreso }} 
+                    <span class="success-text">Guardado Exitosamente</span>
+                </h1>
+                
+                <p class="success-message">
+                    El equipo ha sido registrado correctamente en el sistema. 
+                    Puedes descargar el comprobante o realizar otro ingreso.
+                </p>
+
+                <div class="action-buttons">
+                    <a href="{% url 'pdf_ingreso' ingreso_id=ingreso_id %}" 
+                       target="_blank" 
+                       class="btn btn-primary action-btn">
+                        <span class="btn-icon">📄</span>
+                        Descargar PDF del Ingreso
+                    </a>
+                    
+                    <a href="{% url 'ingreso_equipo' %}" 
+                       class="btn btn-secondary action-btn">
+                        <span class="btn-icon">🔁</span>
+                        Realizar Otro Ingreso
+                    </a>
+                </div>
+
+                <div class="additional-info">
+                    <p class="info-text">
+                        <strong>Número de Ingreso:</strong> #{{ ingreso.numero_ingreso }}
+                    </p>
+                    <p class="info-text">
+                        <strong>Fecha:</strong> <span id="current-date"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 Sistema de Gestión de Taller - Ingreso procesado correctamente</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mostrar fecha actual
+            const currentDate = new Date().toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('current-date').textContent = currentDate;
+
+            // Animación de entrada para la tarjeta de éxito
+            const successCard = document.querySelector('.success-card');
+            successCard.style.opacity = '0';
+            successCard.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                successCard.style.transition = 'all 0.6s ease';
+                successCard.style.opacity = '1';
+                successCard.style.transform = 'translateY(0)';
+            }, 100);
+
+            // Animación para el checkmark
+            const checkmark = document.querySelector('.checkmark');
+            setTimeout(() => {
+                checkmark.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    checkmark.style.transform = 'scale(1)';
+                }, 200);
+            }, 400);
+
+            // Auto-focus en el botón de PDF después de 2 segundos
+            setTimeout(() => {
+                const pdfButton = document.querySelector('.btn-primary');
+                pdfButton.focus();
+            }, 2000);
+        });
+    </script>
+
+    <style>
+        /* Estilos específicos para la página de éxito */
+        .success-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+            padding: 40px 20px;
+        }
+
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 3px solid #27ae60;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .success-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #27ae60, #2ecc71, #27ae60);
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .success-icon {
+            margin-bottom: 30px;
+        }
+
+        .checkmark {
+            font-size: 4em;
+            display: inline-block;
+            animation: bounce 0.6s ease;
+            transition: transform 0.3s ease;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .success-title {
+            color: #27ae60;
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .success-text {
+            display: block;
+            color: #2c3e50;
+            font-size: 0.7em;
+            margin-top: 10px;
+        }
+
+        .success-message {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            min-width: 200px;
+            justify-content: center;
+        }
+
+        .btn-primary.action-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-primary.action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-secondary.action-btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary.action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-icon {
+            font-size: 1.2em;
+        }
+
+        .additional-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .info-text {
+            margin: 8px 0;
+            color: #2c3e50;
+            font-size: 1em;
+        }
+
+        .info-text strong {
+            color: #27ae60;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .success-card {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .success-title {
+                font-size: 1.8em;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .action-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .checkmark {
+                font-size: 3em;
+            }
+        }
+
+        /* Animación de pulso para botones */
+        .action-btn:focus {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); }
+        }
+
+        /* Efecto confetti sutil */
+        .success-card::after {
+            content: '🎉';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5em;
+            opacity: 0.3;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+    </style>
+</body>
+</html>

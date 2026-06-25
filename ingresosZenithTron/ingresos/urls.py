@@ -16,8 +16,10 @@ urlpatterns = [
     path('estadisticas-api/', views.estadisticas_api, name='estadisticas-api'),
     path('ingreso/<int:ingreso_id>/reporte/nuevo/', views.crear_reporte_tecnico, name='crear_reporte_tecnico'),
     path('reporte/<int:reporte_id>/', views.ver_reporte_tecnico, name='ver_reporte_tecnico'),
-    path('ingreso/<int:ingreso_id>/cuenta/nuevo/', views.crear_cuenta_cobro, name='crear_cuenta_cobro'),
-    path('cuenta/<int:cuenta_id>/', views.ver_cuenta_cobro, name='ver_cuenta_cobro'),
+    path('reporte-tecnico/<int:reporte_id>/pdf/', views.generar_pdf_reporte_tecnico, name='generar_pdf_reporte_tecnico'),
+    path('cuenta-cobro/<int:ingreso_id>/crear/', views.crear_cuenta_cobro, name='crear_cuenta_cobro'),
+    path('cuenta-cobro/<int:cuenta_id>/', views.ver_cuenta_cobro, name='ver_cuenta_cobro'),
+    path('cuenta-cobro/<int:cuenta_id>/pdf/', views.generar_pdf_cuenta_cobro, name='generar_pdf_cuenta_cobro'),
    
 
 ]

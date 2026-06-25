@@ -1,0 +1,171 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @page { size: letter; margin: 1.8cm; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: #333;
+        line-height: 1.5;
+        font-size: 13px;
+    }
+
+    .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #24374b;
+    padding: 15px 25px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 15px rgba(52, 73, 94, 0.3);
+}
+
+.header .logo-box,
+.header .qr-box {
+    width: 80px;
+    height: 80px;
+    background: white;
+    border-radius: 6px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header .logo-box img,
+.header .qr-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+    .titulo-doc {
+        text-align: center;
+        margin: 15px 0 20px 0;
+    }
+    .titulo-doc h1 {
+        color: #24374b;
+        font-size: 1.4em;
+    }
+    .titulo-doc p { color: #555; font-size: 12px; margin-top: 3px; }
+
+    .info-cliente {
+        background: white;
+        border: 2px solid #eee;
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 20px;
+    }
+    .info-cliente p { margin: 3px 0; }
+    .info-cliente strong { color: #24374b; }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: left; }
+    th { background-color: #24374b; color: white; font-size: 12px; }
+    td.num, th.num { text-align: right; }
+
+    tr.total-row td {
+        font-weight: 700;
+        color: #24374b;
+        border-top: 2px solid #24374b;
+    }
+
+    .valor-total {
+        background-color: #f1c40f;
+        color: #24374b;
+        font-size: 1.15em;
+        font-weight: 700;
+        padding: 12px 18px;
+        border-radius: 8px;
+        text-align: center;
+        margin: 15px 0;
+    }
+
+    .firma { margin-top: 50px; }
+    .firma img { height: 65px; }
+
+
+    .footer {
+        margin-top: 45px;
+        border-top: 2px solid #24374b;
+        padding-top: 10px;
+        font-size: 11px;
+        text-align: center;
+        color: #555;
+    }
+</style>
+</head>
+<body>
+
+    <div class="header">
+    <div class="logo-box">
+        <img src="{{ logo_base64 }}" alt="Logo">
+    </div>
+    <div class="qr-box">
+        <img src="{{ qr_base64 }}" alt="QR">
+    </div>
+</div>
+
+    <div class="titulo-doc">
+        <h1><a href="{%url 'inicio'%}">Cuenta de Cobro N° {{ cuenta.numero }}</a></h1>
+        <p>Medellín, {{ cuenta.fecha|date:"d \\d\\e F \\d\\e Y" }}</p>
+    </div>
+
+    <div class="info-cliente">
+        <p><strong>Nombre:</strong> {{ cuenta.nombre }}</p>
+        <p><strong>Cédula/NIT:</strong> {{ cuenta.id_cedula }}</p>
+        <p><strong>Dirección:</strong> {{ cuenta.direccion }}</p>
+        <p><strong>Teléfono:</strong> {{ cuenta.telefono }}</p>
+        <p><strong>Ciudad:</strong> {{ cuenta.ciudad }}</p>
+        <p><strong>Forma de pago:</strong> {{ cuenta.forma_pago }}</p>
+        <p><strong>Equipo:</strong> {{ ingreso.equipo.marca }} {{ ingreso.equipo.modelo }}</p>
+        <p><strong>S/N:</strong> {{ ingreso.equipo.serial|default:"N/A" }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Cant.</th>
+                <th>Concepto</th>
+                <th class="num">Valor unit.</th>
+                <th class="num">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cuenta.detalle_items.all %}
+            <tr>
+                <td>{{ item.cantidad }}</td>
+                <td>{{ item.concepto }}</td>
+                <td class="num">$ {{ item.valor_unitario|floatformat:0 }}</td>
+                <td class="num">$ {{ item.subtotal|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td colspan="3" style="text-align:right;">Total</td>
+                <td class="num">$ {{ cuenta.total|floatformat:0 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="valor-total">
+        Total a pagar: $ {{ cuenta.total|floatformat:0 }} (pesos M/L)
+    </div>
+    <div class="firma">
+        <img src="{{ firma_base64 }}" alt="Firma">
+    </div>
+    <div class="footer">
+        Dirección: Calle 43 No. 80 - 92 Medellín &nbsp;|&nbsp; Cel: 305 260 00 28<br>
+        e-mail: electronicaszenithtron@gmail.com &nbsp;|&nbsp; www.electronicaszenithtron.com
+    </div>
+
+</body>
+</html>

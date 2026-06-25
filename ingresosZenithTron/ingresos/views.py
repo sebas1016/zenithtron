@@ -26,7 +26,16 @@ from PIL import Image, ImageOps
 from io import BytesIO
 from django.core.files.base import ContentFile
 import os
+import base64
 
+# Al inicio de views.py, fuera de cualquier función — se crea UNA sola vez
+# cuando Django arranca el proceso, no en cada request.
+try:
+    from weasyprint.text.fonts import FontConfiguration
+except ImportError:
+    from weasyprint import FontConfiguration
+
+FONT_CONFIG = FontConfiguration()
 # Create your views here.
 def inicio(request):
     return render(request, 'gestion/inicio.html')
@@ -60,8 +69,8 @@ def generar_numero_ingreso():
 
 def generar_numero_cuenta_cobro():
     
-    ultimo = CuentaCobro.objects.aggregate(max_num=Max('numero'))['max_num']
-    return (ultimo or 0) + 1
+    ultimo = CuentaCobro.objects.select_for_update().order_by('-numero').first()
+    return (ultimo.numero + 1) if ultimo else 1
 
 def ingreso_equipo(request):
     if request.method == 'POST':
@@ -458,34 +467,63 @@ def actualizar_ingreso_api(request, ingreso_id):
     return JsonResponse({'success': True})
 
 
+def image_to_base64(path):
+    """Para logo/QR: lee la imagen del disco tal cual, sin redimensionar."""
+    try:
+        with open(path, 'rb') as f:
+            encoded = base64.b64encode(f.read()).decode('utf-8')
+        ext = path.split('.')[-1].lower()
+        mime = 'jpeg' if ext in ('jpg', 'jpeg') else ext
+        return f"data:image/{mime};base64,{encoded}"
+    except FileNotFoundError:
+        return ''
+
+
+def imagen_a_base64_redimensionada(imagen_field, max_width=700):
+    """Para fotos de usuario (ingreso/serial): lee del disco y redimensiona,
+    porque en el PDF se muestran como miniaturas de 100x100px — no tiene
+    sentido embeber la foto completa de la cámara."""
+    if not imagen_field:
+        return ''
+    try:
+        path = imagen_field.path
+    except (ValueError, NotImplementedError):
+        return ''
+    try:
+        with Image.open(path) as img:
+            fmt = img.format or 'WEBP'
+            if img.width > max_width:
+                ratio = max_width / img.width
+                img = img.resize((max_width, int(img.height * ratio)), Image.LANCZOS)
+            buffer = BytesIO()
+            img.save(buffer, format=fmt, quality=80)
+            encoded = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            return f"data:image/{fmt.lower()};base64,{encoded}"
+    except FileNotFoundError:
+        return ''
+
+
 def generar_pdf_ingreso(request, ingreso_id):
-    from pathlib import Path
-    ingreso = get_object_or_404(Ingreso, id=ingreso_id)
-    recibido_por = ingreso.recibido_por_id
+    ingreso = get_object_or_404(
+        Ingreso.objects.select_related('equipo__cliente', 'recibido_por'),
+        id=ingreso_id
+    )
     equipo = ingreso.equipo
     cliente = equipo.cliente
-    #imagenes = ImagenIngreso.objects.filter(ingreso=ingreso)
-    
-    imagenes_rutas = []
-    for img in ingreso.imagenes.all():
-        #ruta_absoluta = Path(settings.MEDIA_ROOT) / img.imagen.name
-        ruta_uri = request.build_absolute_uri(img.imagen.url)  # file:///C:/...
-        print(ruta_uri)
-        imagenes_rutas.append({
-                'ruta': ruta_uri,
-                
-        })
-    
-    imagenes_serial = ImagenSerial.objects.filter(equipo=equipo)
-    imagenes_serial_rutas = []
-    for img in imagenes_serial:
-        ruta_uri = request.build_absolute_uri(img.imagen.url)
-       
-        imagenes_serial_rutas.append({
-            'ruta': ruta_uri,
-        })
-       
-    # Renderizar PDF desde template
+    recibido_por = ingreso.recibido_por
+
+    imagenes_rutas = [
+        {'ruta': imagen_a_base64_redimensionada(img.imagen)}
+        for img in ingreso.imagenes.all().order_by('orden')
+    ]
+
+    imagenes_serial_rutas = [
+        {'ruta': imagen_a_base64_redimensionada(img.imagen)}
+        for img in ImagenSerial.objects.filter(equipo=equipo).order_by('orden')
+    ]
+
+    base_img = os.path.join(settings.BASE_DIR, 'ingresos', 'static', 'images')
+
     html = render_to_string('gestion/pdf_ingreso.html', {
         'ingreso': ingreso,
         'recibido_por': recibido_por,
@@ -493,15 +531,12 @@ def generar_pdf_ingreso(request, ingreso_id):
         'equipo': equipo,
         'imagenes': imagenes_rutas,
         'imagenes_serial': imagenes_serial_rutas,
-        
-     })
+        'logo_base64': image_to_base64(os.path.join(base_img, 'logo.jpg')),
+        'qr_base64': image_to_base64(os.path.join(base_img, 'qrcode.png')),
+    })
 
-     # Establecer base_url correctamente
-    base_url = request.build_absolute_uri('/')
+    pdf_file = HTML(string=html).write_pdf()
 
-    pdf_file = HTML(string=html, base_url=base_url).write_pdf()
-
-    # Respuesta con PDF descargable
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename=ingreso_{ingreso.numero_ingreso}.pdf'
     return response
@@ -515,7 +550,7 @@ def ingreso_exitoso(request, ingreso_id):
     
 def crear_reporte_tecnico(request, ingreso_id):
     ingreso = get_object_or_404(Ingreso, id=ingreso_id)
-    
+
     if request.method == 'POST':
         form = ReporteTecnicoForm(request.POST)
         if form.is_valid():
@@ -525,11 +560,12 @@ def crear_reporte_tecnico(request, ingreso_id):
             return redirect('ver_reporte_tecnico', reporte_id=reporte.id)
     else:
         form = ReporteTecnicoForm()
-    
-    return render(request, 'gestion/crear_reporte.html',{
+
+    return render(request, 'gestion/crear_reporte.html', {
         'ingreso': ingreso,
         'form': form,
     })
+
 
 def ver_reporte_tecnico(request, reporte_id):
     reporte = get_object_or_404(ReporteTecnico, id=reporte_id)
@@ -537,22 +573,56 @@ def ver_reporte_tecnico(request, reporte_id):
         'reporte': reporte,
         'ingreso': reporte.ingreso,
     })
-    
+
+
+def image_to_base64(path):
+    """Convierte una imagen del filesystem a base64 para incrustar en el PDF (WeasyPrint)."""
+    try:
+        with open(path, 'rb') as f:
+            encoded = base64.b64encode(f.read()).decode('utf-8')
+        ext = path.split('.')[-1].lower()
+        mime = 'jpeg' if ext in ('jpg', 'jpeg') else ext
+        return f"data:image/{mime};base64,{encoded}"
+    except FileNotFoundError:
+        return ''
+
+def generar_pdf_reporte_tecnico(request, reporte_id):
+    reporte = get_object_or_404(ReporteTecnico, id=reporte_id)
+    ingreso = reporte.ingreso
+    equipo = ingreso.equipo
+
+    contexto = {
+        'reporte': reporte,
+        'ingreso': ingreso,
+        'equipo': equipo,
+        'logo_base64': image_to_base64(os.path.join(settings.BASE_DIR, 'ingresos', 'static', 'images', 'logou.png')),
+        'firma_base64': image_to_base64(os.path.join(settings.BASE_DIR, 'ingresos', 'static', 'images', 'firma.png')),
+        'qr_base64': image_to_base64(os.path.join(settings.BASE_DIR, 'ingresos', 'static', 'images', 'qrinstagram.png')),
+    }
+
+    html_string = render_to_string('gestion/reporte_tecnico_pdf.html', contexto)
+    pdf = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="reporte_tecnico_{reporte.id}.pdf"'
+    return response
+
 def crear_cuenta_cobro(request, ingreso_id):
     ingreso = get_object_or_404(Ingreso, id=ingreso_id)
-    
+
     if request.method == 'POST':
         form = CuentaCobroForm(request.POST)
-        formset = ItemFormSet(request.POST)  # siempre instanciar ambos juntos
-        
+        formset = ItemFormSet(request.POST)
+
         if form.is_valid() and formset.is_valid():
-            cuenta = form.save(commit=False)
-            cuenta.ingreso = ingreso
-            cuenta.numero = generar_numero_cuenta_cobro() 
-            cuenta.save()
-            
-            formset.instance = cuenta  # asignar instancia antes de guardar
-            formset.save()
+            with transaction.atomic():
+                cuenta = form.save(commit=False)
+                cuenta.ingreso = ingreso
+                cuenta.numero = generar_numero_cuenta_cobro()
+                cuenta.save()
+
+                formset.instance = cuenta
+                formset.save()
             return redirect('ver_cuenta_cobro', cuenta_id=cuenta.id)
     else:
         cliente = ingreso.equipo.cliente
@@ -561,16 +631,51 @@ def crear_cuenta_cobro(request, ingreso_id):
             'telefono': cliente.celular,
         })
         formset = ItemFormSet()
-        
+
     return render(request, 'gestion/crear_cuenta_cobro.html', {
         'form': form,
         'formset': formset,
         'ingreso': ingreso,
     })
-    
+
+
 def ver_cuenta_cobro(request, cuenta_id):
     cuenta = get_object_or_404(CuentaCobro, id=cuenta_id)
     return render(request, 'gestion/cuenta_cobro.html', {
         'cuenta': cuenta,
         'ingreso': cuenta.ingreso,
     })
+    
+def image_to_base64(path):
+    try:
+        with open(path, 'rb') as f:
+            encoded = base64.b64encode(f.read()).decode('utf-8')
+        ext = path.split('.')[-1].lower()
+        mime = 'jpeg' if ext in ('jpg', 'jpeg') else ext
+        return f"data:image/{mime};base64,{encoded}"
+    except FileNotFoundError:
+        return ''
+
+
+def generar_pdf_cuenta_cobro(request, cuenta_id):
+    cuenta = get_object_or_404(CuentaCobro, id=cuenta_id)
+    ingreso = cuenta.ingreso
+    equipo = ingreso.equipo
+
+    base_img = os.path.join(settings.BASE_DIR, 'ingresos', 'static', 'images')
+
+    contexto = {
+        'cuenta': cuenta,
+        'ingreso': ingreso,
+        'equipo': equipo,
+        'logo_base64': image_to_base64(os.path.join(base_img, 'logo.png')),
+        'qr_base64': image_to_base64(os.path.join(base_img, 'qrinstagram.png')),
+        'firma_base64': image_to_base64(os.path.join(settings.BASE_DIR, 'ingresos', 'static', 'images', 'firma.png')),
+    }
+
+    html_string = render_to_string('gestion/cuenta_cobro_pdf.html', contexto)
+    pdf = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="cuenta_cobro_{cuenta.numero}.pdf"'
+    return response

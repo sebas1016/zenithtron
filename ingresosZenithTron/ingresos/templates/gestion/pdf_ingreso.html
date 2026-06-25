@@ -1,4 +1,4 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -22,7 +22,7 @@
         left: 50%;
         width: 400px;
         height: 400px;
-        background: url("{% static 'images/logo.jpg' %}") no-repeat center center;
+        background: url("{{ logo_base64 }}") no-repeat center center;
         background-size: contain;
         transform: translate(-50%, -50%);
         opacity: 0.2;
@@ -37,7 +37,7 @@
         left: 20px;
         width: 90px;
         height: 90px;
-        background: url("{% static 'images/logo.jpg' %}") no-repeat center center;
+        background: url("{{ logo_base64 }}") no-repeat center center;
         background-size: contain;
         z-index: 1000;
     }
@@ -46,7 +46,7 @@
     .qr-header { 
         width: 90px;
         height: 90px;
-        background: url("{% static 'images/qrcode.png' %}") no-repeat center center;
+        background: url("{{ qr_base64 }}") no-repeat center center;
         background-size: contain;
     }
     .qr-container {
@@ -165,7 +165,6 @@
         display: block;
     }
 
-
     .marca-agua-texto {
         position: fixed;
         top: 50%;
@@ -266,7 +265,7 @@
     {% endif %}
 
     <div class="aviso-importante">
-        <p><strong>⚠️ IMPORTANTE:</strong> Información de diagnóstico en 1 a 5 días hábiles.</p>
+        <p><strong>⚠ IMPORTANTE:</strong> Información de diagnóstico en 1 a 5 días hábiles.</p>
         <p>
             Los términos y condiciones del servicio los puedes encontrar en
             <a href="https://www.electronicaszenithtron.com">www.electronicaszenithtron.com</a>

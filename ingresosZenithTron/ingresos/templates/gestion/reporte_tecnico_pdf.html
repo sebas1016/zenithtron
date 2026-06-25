@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @page { size: letter; margin: 1.8cm; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: #333;
+        line-height: 1.6;
+        font-size: 13px;
+    }
+
+    .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #24374b;
+    padding: 15px 25px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 15px rgba(52, 73, 94, 0.3);
+}
+
+.header .logo-box,
+.header .qr-box {
+    width: 80px;
+    height: 80px;
+    background: white;
+    border-radius: 6px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header .logo-box img,
+.header .qr-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+    .fecha { text-align: right; color: #555; margin-bottom: 20px; }
+
+    .titulo-principal {
+        color: white;
+        background-color: #24374b;
+        font-size: 1.6em;
+        text-align: center;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0 25px 0;
+        box-shadow: 0 5px 15px rgba(52, 73, 94, 0.3);
+    }
+
+    .datos-equipo {
+        background: white;
+        border: 2px solid #eee;
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+    }
+    .datos-equipo p { margin: 4px 0; }
+    .datos-equipo strong { color: #24374b; }
+
+    .conceptos { margin: 20px 0; }
+    .conceptos p.intro { font-weight: 600; color: #24374b; margin-bottom: 8px; }
+    .conceptos ul { padding-left: 22px; }
+    .conceptos li { margin-bottom: 4px; }
+
+    .nota-contacto { margin: 25px 0; color: #555; }
+
+    .valor {
+        background-color: #f1c40f;
+        color: #24374b;
+        font-size: 1.1em;
+        font-weight: 700;
+        padding: 12px 18px;
+        border-radius: 8px;
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .firma { margin-top: 50px; }
+    .firma img { height: 65px; }
+
+    .footer {
+        margin-top: 50px;
+        border-top: 2px solid #24374b;
+        padding-top: 12px;
+        font-size: 11px;
+        text-align: center;
+        color: #555;
+    }
+</style>
+</head>
+<body>
+
+    <div class="header">
+    <div class="logo-box">
+        <img src="{{ logo_base64 }}" alt="Logo">
+    </div>
+    <div class="qr-box">
+        <img src="{{ qr_base64 }}" alt="QR">
+    </div>
+</div>
+
+    <p class="fecha">Medellín, {{ reporte.fecha|date:"d \\d\\e F \\d\\e Y" }}</p>
+
+    <p>Un cordial saludo,<br>A quien pueda interesar.</p>
+
+    <div class="titulo-principal">Reporte Técnico</div>
+
+    <div class="datos-equipo">
+        <p><strong>Equipo:</strong> {{ equipo.descripcion_general }}</p>
+        <p><strong>Marca:</strong> {{ equipo.marca }}</p>
+        <p><strong>Modelo:</strong> {{ equipo.modelo }}</p>
+        <p><strong>S/N:</strong> {{ equipo.serial|default:"N/A" }}</p>
+    </div>
+
+    <div class="conceptos">
+        <p class="intro">El valor es relacionado a los siguientes conceptos:</p>
+        <ul>
+            {% for linea in reporte.descripcion_trabajo.splitlines %}
+                {% if linea.strip %}
+                <li>{{ linea }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+
+    <p class="nota-contacto">Por favor contáctenos ante cualquier duda o información adicional sobre el presente reporte.</p>
+
+    <div class="valor">Valor de la reparación: $ {{ reporte.valor|floatformat:0 }} (pesos M/L)</div>
+
+    <div class="firma">
+        <img src="{{ firma_base64 }}" alt="Firma">
+    </div>
+
+    <div class="footer">
+        Dirección: Calle 43 No. 80 - 92 Medellín &nbsp;|&nbsp; Cel: 305 260 00 28<br>
+        e-mail: electronicaszenithtron@gmail.com &nbsp;|&nbsp; www.electronicaszenithtron.com<br>
+        NIT: 43497794
+    </div>
+
+</body>
+</html>

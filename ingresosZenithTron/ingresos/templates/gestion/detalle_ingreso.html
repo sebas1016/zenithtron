@@ -20,8 +20,8 @@
         
         <!-- Botón Volver -->
         <a href="{% url 'listar_ingresos' %}" class="btn-volver">← Volver al listado</a>
-        <!--<a href="{% url 'crear_reporte_tecnico' ingreso.id %}" class="btn-reporte">Generar Reporte Técnico</a>
-        <a href="{% url 'crear_cuenta_cobro' ingreso.id %}" class="btn-reporte">Generar Cuenta de corbo</a> Future-->
+        <a href="{% url 'crear_reporte_tecnico' ingreso.id %}" class="btn-volver">Generar Reporte Técnico</a>
+        <a href="{% url 'crear_cuenta_cobro' ingreso.id %}" class="btn-volver">Generar Cuenta de corbo</a> 
         <!-- Información del Ingreso -->
         <div class="info-section">
             <h3><img src="{% static 'images/information.png' %}" width="40"> Información del Ingreso</h3>

@@ -96,15 +96,24 @@ def ingreso_equipo(request):
             if marca == 'Otra':
                 marca = request.POST.get('marca_otro')
 
-            equipo, creado = Equipo.objects.get_or_create(
-                cliente=cliente,
-                marca=marca,
-                modelo=equipo_form.cleaned_data['modelo'],
-                serial=equipo_form.cleaned_data['serial'],
-                defaults={
-                    'descripcion_general': equipo_form.cleaned_data['descripcion_general']
-                }
-            )
+            serial = equipo_form.cleaned_data['serial']
+
+            if serial:
+                equipo, creado = Equipo.objects.get_or_create(
+                    cliente=cliente,
+                    marca=marca,
+                    modelo=equipo_form.cleaned_data['modelo'],
+                    serial=serial,
+                    defaults={'descripcion_general': equipo_form.cleaned_data['descripcion_general']}
+                )
+            else:
+                equipo = Equipo.objects.create(
+                    cliente=cliente,
+                    marca=marca,
+                    modelo=equipo_form.cleaned_data['modelo'],
+                    serial=serial,
+                    descripcion_general=equipo_form.cleaned_data['descripcion_general']
+                )
 
             
             #Crear nuevo ingreso
